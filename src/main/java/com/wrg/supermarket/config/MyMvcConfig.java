@@ -1,9 +1,8 @@
 package com.wrg.supermarket.config;
 
+import com.wrg.supermarket.component.LoginHandlerInterceptor;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import org.springframework.web.servlet.config.annotation.*;
 
 /**
  * @ClassName MyMvcConfig
@@ -17,8 +16,32 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 @Configuration
 public class MyMvcConfig extends WebMvcConfigurationSupport {
     @Override
+    protected void addInterceptors(InterceptorRegistry registry) {
+        //super.addInterceptors(registry);
+        registry.addInterceptor(new LoginHandlerInterceptor()).addPathPatterns("/**")
+                .excludePathPatterns("/login.html","/","/login",
+                        "/js/vue.js","/js/index.js","/js/axios.min.js","/js/index.js",
+                        "/js/vuescroll.js","/js/vuescroll-native.js","/js/vuescroll-slide.js",
+                        "/styles/bootstrap.min..css","/styles/index.css","/styles/vuescroll.css");
+    }
+
+    @Override
     protected void addViewControllers(ViewControllerRegistry registry) {
         //super.addViewControllers(registry);
         registry.addViewController("/").setViewName("login");
+        registry.addViewController("/login.html").setViewName("login");
+        registry.addViewController("/shop.html").setViewName("shop");
+
+
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/**")
+                .addResourceLocations("classpath:/static/");
+//        registry.addResourceHandler("swagger-ui.html")
+//                .addResourceLocations("classpath:/META-INF/resources/");
+//        registry.addResourceHandler("/webjars/**")
+//                .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
 }

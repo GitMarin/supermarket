@@ -6,7 +6,7 @@ public class TinyplatCommonException extends RuntimeException {
 
 	private String code;
 
-	public TinyplatCommonException(String code, String msg)
+	public TinyplatCommonException(String code,String msg)
 
 	{
 		super(msg);
