@@ -14,12 +14,12 @@ import java.time.LocalDateTime;
  **/
 @TableName("user")
 public class User implements Serializable {
-
+    private static final long serialVersionUID = 1L;
     private String id;
     private String username;
     private String password;
     private String type;
-    private String avater;
+    private String avatar;
     private String nickname;
     private String sign;
     private String gender;
@@ -28,10 +28,19 @@ public class User implements Serializable {
     private String remark;
     private LocalDateTime registerTime;
     private LocalDateTime lastAccessTime;
+    private Integer age;
     private Integer dealNumber;
     private Integer commentNumber;
     private Integer favoritesNumber;
     private Integer shoppingCartNumber;
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
 
     public String getId() {
         return id;
@@ -49,12 +58,12 @@ public class User implements Serializable {
         this.type = type;
     }
 
-    public String getAvater() {
-        return avater;
+    public String getAvatar() {
+        return avatar;
     }
 
-    public void setAvater(String avater) {
-        this.avater = avater;
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     public String getNickname() {

@@ -1,5 +1,9 @@
 package com.wrg.supermarket.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.injector.methods.SelectOne;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wrg.supermarket.component.MkplatWebModel;
 import com.wrg.supermarket.entity.User;
@@ -9,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,13 +25,14 @@ import java.util.Map;
  **/
 @Service
 public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements ILoginService {
-    @Autowired
-    private UserMapper userMapper;
 
+    @Autowired
+    private UserMapper mapper;
     @Override
     public MkplatWebModel login(String username,String password){
-        Map<String,Object> Data = new HashMap<>(1);
-        Data.put("id",userMapper.login(username,password));
-        return MkplatWebModel.convertMetroPayWebModel(Data);
+        QueryWrapper<User> queryWrapper=Wrappers.query();
+        queryWrapper.eq("username",username).eq("password",password);
+        User data = mapper.selectOne(queryWrapper);
+        return MkplatWebModel.convertMetroPayWebModel(data);
     }
 }

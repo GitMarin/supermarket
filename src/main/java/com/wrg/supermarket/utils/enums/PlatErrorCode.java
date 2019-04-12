@@ -37,6 +37,7 @@ public enum PlatErrorCode {
      * 文件操作失败
      */
     FILEOPERATOR_ERROR("3006", "文件操作失败"),
+    FILEUPLOAD_ERROR("3007","附件上传失败"),
 
     /**
      * 系统异常

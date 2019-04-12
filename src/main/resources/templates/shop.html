@@ -27,14 +27,26 @@
 <body>
 <div id="shop">
     <el-container>
-        <el-header>
-
+        <el-header height="80px">
             <!--存放头像等信息-->
             <el-row>
-                <label>用户</label>
-            </el-row>
-            <el-row>
-                <el-form ref="searchForm" :inline="true" :model="searchForm" class="demo-form-inline" align="center">
+                <el-col :span="10">
+                    <label>用户{{userId}}</label><br>
+                    <el-popover
+                            placement="right-start"
+                            width="200"
+                            trigger="hover"
+                            @show="showUser">
+                        <el-card class="box-card">
+                            <label>账号：{{id}}</label><br>
+                            <label>昵称：{{nickname}}</label><br>
+                            <label>评论：{{remark}}</label>
+                        </el-card>
+                        <img :src="avatar" width="60px" height="60px" alt="用户头像" slot="reference" @click="avatarClick(id)">
+                    </el-popover>
+                </el-col>
+                <el-col :span="14"><br>
+                <el-form ref="searchForm" :inline="true" :model="searchForm" class="demo-form-inline" >
                     <el-form-item>
                         <el-input v-model="searchForm.name" autocomplete="off" clearable></el-input>
                     </el-form-item>
@@ -46,6 +58,7 @@
                         <!--<el-tab-pane label="" name="all"></el-tab-pane>-->
                     <!--</el-tabs>-->
                 </el-form>
+                </el-col>
             </el-row>
 
         </el-header>
@@ -54,7 +67,7 @@
             <div id="box">
                 <ul>
                     <li v-for="v in cardData">
-                        <img v-bind:src="v.condensePicLink" alt="">
+                        <img v-bind:src="v.condensePicLink" alt="v.name" @click="goodsClick(v.id)">
                         <h4>{{v.name}}</h4>
                         <p>{{v.depict}}</p>
                         <p>评论量：{{v.commentNumber}}   ￥{{v.price}}元</p>
@@ -87,6 +100,13 @@
 <script src="js/vuescroll.js"></script>
 <script src="js/jquery-3.2.1.min.js"></script>
 <script type="text/javascript">
+    /**
+     * 页面加载完毕打印键值对对象
+     */
+    window.onload = function () {
+        const _this=this;
+
+    };
     new Vue({
         el:"#shop",
         data:function(){
@@ -98,10 +118,51 @@
                     total:null,
                     name:null,
                 },
+                userId:0,
+                id:null,
+                nickname:null,
+                remark:null,
+                avatar:null,
             }
 
         },
         methods:{
+            showUser(){
+                const _this=this;
+                console.log(_this.userId);
+                axios.get('http://'+window.location.host+'/user/getUserData',{params:{id:_this.userId}})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.nickname=response.data.rtnData.nickname;
+                            _this.id=response.data.rtnData.id;
+                            _this.remark=response.data.rtnData.remark;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            // _this.$bdmsg({
+                            //     type:"toast",
+                            //     msgType:"error",
+                            //     message: msg+'失败！'+response.data.rtnMsg
+                            // });
+                        }
+                    }).catch(function (error) {
+                        // handle error
+                        console.log(error);
+                    }).then(function () {
+                         // always executed
+                    });
+
+            },
+            avatarMouseOver(userId){
+                console.log(userId);
+            },
+
+            goodsClick(id){
+                window.location.href = "details.html?id="+id;
+            },
+            avatarClick(id){
+                window.location.href = "information.html?id="+id;
+            },
             search(){
                 this.initTable();
             },
@@ -112,7 +173,6 @@
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.cardData=response.data.rtnData;
                             _this.searchForm.total=response.data.total;
-                            console.log(_this.searchForm.total);
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
@@ -140,6 +200,11 @@
             },
         },
         mounted: function() {
+            const _this=this;
+            var url = window.location.href;
+            var row =  url.split("?")[1].split("&");
+            _this.avatar=row[0].split("=")[1];
+            _this.userId=row[1].split("=")[1];
             this.initTable();
         },
     });

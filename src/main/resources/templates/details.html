@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>商品详情</title>
+    <link rel="stylesheet" type="text/css" href="styles/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="styles/index.css">
+    <link rel="stylesheet" type="text/css" href="styles/vuescroll.css">
+</head>
+<body>
+<div id="details">
+    <div style="width:500px;height: 250px;margin: 50px auto 0px;">
+    <div style="float:left">
+        <img :src="condensePicLink" :alt="name" width="250px" height="250px">
+    </div>
+    <div style="float:right">
+        <el-form>
+            <el-form-item>
+                <span style="font-size: 24px">{{name}}</span><br>
+                <p>价格 ￥<span style="font-size: 20px">{{price}}</span>元</p>
+                <div style="margin-top: 100px">
+                    <el-button @click="buyGoods">立即购买</el-button>
+                    <el-button type="primary">加入购物车</el-button>
+                </div>
+            </el-form-item>
+        </el-form>
+    </div>
+    </div>
+</div>
+</body>
+<script src="js/vue.js"></script>
+<script src="js/index.js"></script>
+<script src="js/axios.min.js"></script>
+<script src="js/vuescroll-native.js"></script>
+<script src="js/vuescroll-slide.js"></script>
+<script src="js/vuescroll.js"></script>
+<script src="js/jquery-3.2.1.min.js"></script>
+<script type="text/javascript">
+    /**
+     * 页面加载完毕打印键值对对象
+     */
+    window.onload = function () {
+
+    };
+    new Vue({
+        el:"#details",
+        data:function(){
+            return{
+
+                id:null,
+                name:null,
+                price:null,
+                condensePicLink:null,
+            }
+
+        },
+        methods:{
+            initTable:function(){
+                const _this=this;
+                console.log("init")
+                axios.get('http://'+window.location.host+'/goods/getOneData',{params:{id:_this.id}})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.name=response.data.rtnData.name;
+                            _this.price=response.data.rtnData.price;
+                            _this.condensePicLink=response.data.rtnData.condensePicLink;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            console.log(response);
+                            // _this.$bdmsg({
+                            //     type:"toast",
+                            //     msgType:"error",
+                            //     message: msg+'失败！'+response.data.rtnMsg
+                            // });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+        },
+        mounted: function() {
+            const _this=this;
+            var url = window.location.href;
+            _this.id =  url.split("?")[1].split("=")[1];
+            console.log("detail");
+            this.initTable();
+        },
+    });
+</script>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>个人信息</title>
+    <link rel="stylesheet" type="text/css" href="styles/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="styles/index.css">
+    <link rel="stylesheet" type="text/css" href="styles/vuescroll.css">
+</head>
+<body>
+<div id="information" style="width: 100%">
+    <!--个人信息模块-->
+    <div style="margin:50px auto 0px; width: 500px;" >
+        <div style="height:250px">
+            <img :src="avatar" style="float: left;width: 250px;height: 250px">
+            <div style="float:right">
+                <p>昵称：{{nickname}}</p>
+                <p>年龄：{{age}} 性别：{{gender}}</p>
+                <p>签名：{{sign}}</p>
+                <p>地址：{{address}}</p>
+                <el-button @click="openDg_modifyUser">修改信息</el-button>
+            </div>
+        </div>
+    </div><br>
+
+    <div style="width:80% ; margin: auto">
+        <!--交易列表-->
+        <el-tabs @tab-click="handleTabClick">
+            <el-tab-pane label="全部" name="all"></el-tab-pane>
+            <el-tab-pane label="待付款" name="waitPay"></el-tab-pane>
+            <el-tab-pane label="待发货" name="waitSend"></el-tab-pane>
+            <el-tab-pane label="待收货" name="waitConfirm"></el-tab-pane>
+            <el-tab-pane label="待评价" name="waitComment"></el-tab-pane>
+            <el-tab-pane label="完成" name="over"></el-tab-pane>
+        </el-tabs>
+        <el-table border empty-text=" " height="50px" style="width: 100%">
+            <el-table-column label="宝贝" min-width="40%"></el-table-column>
+            <el-table-column label="单价" min-width="15%"></el-table-column>
+            <el-table-column label="数量" min-width="15%"></el-table-column>
+            <el-table-column label="操作" min-width="30%"></el-table-column>
+        </el-table>
+        <div v-for="t in tableData" style="width: 100%">
+            <el-card style="height: 55px">
+                <el-row >
+                    <el-col :span="5"><span style="width: 20%">创建时间：{{t.createTime}}</span></el-col>
+                    <el-col :span="5"><span style="width: 20%">交易单号：{{t.dealId}}</span></el-col>
+                    <el-col :span="5"><span style="width: 30%">超市名：{{t.shopName}}</span></el-col>
+                    <el-col :span="4"><span style="width: 30%">交易总额：￥{{t.dealPrice}}元</span></el-col>
+                    <el-col :span="5">交易状态：
+                        <span style="width: 30%" v-if="t.status == 'waitPay'">待付款</span>
+                        <span style="width: 30%" v-if="t.status == 'waitSend'">待发货</span>
+                        <span style="width: 30%" v-if="t.status == 'waitConfirm'">待收货</span>
+                        <span style="width: 30%" v-if="t.status == 'waitComment'">待评价</span>
+                        <span style="width: 30%" v-if="t.status == 'over'">完成</span>
+                    </el-col>
+                </el-row>
+            </el-card>
+            <el-card v-for="v in t.cardData" style="height: 55px">
+                <el-row>
+                    <el-col :span="10"><span>{{v.goodsName}}</span></el-col>
+                    <el-col :span="4"><span>￥{{v.goodsPrice}}元</span></el-col>
+                    <el-col :span="3"><span>{{v.goodsNumber}}</span></el-col>
+                    <el-col :span="6">
+                        <el-button-group>
+                            <el-button  size="small">编辑</el-button>
+                            <el-button  size="small">发布</el-button>
+                        </el-button-group>
+                    </el-col>
+                </el-row>
+            </el-card><br>
+        </div>
+
+        <el-pagination
+                :page-sizes="[3, 6, 9, 15]"
+                :current-page="current"
+                :page-size="size"
+                :total="total"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+                layout="total, sizes, prev, pager, next, jumper">
+        </el-pagination>
+    </div>
+<!--修改用户信息弹窗-->
+    <el-dialog id="modifyDg" :title="modifyDgTitle" :visible.sync="modifyDgVisible"  width="350px" @close="dialogClose('modifyDgVisible')">
+        <el-form :model="modifyForm"  :rules="modifyFormRules" ref="modifyForm" label-width="60px">
+
+            <el-form-item label="昵称" prop="nickname">
+                <el-input v-model="modifyForm.nickname" autocomplete="off" clearable></el-input>
+            </el-form-item>
+
+            <el-form-item label="性别" prop="gender">
+                <el-select v-model="modifyForm.gender" placeholder="请选择性别">
+                    <el-option label="男" value="男"></el-option>
+                    <el-option label="女" value="女"></el-option>
+                    <el-option label="未知" value="未知"></el-option>
+                </el-select>
+            </el-form-item>
+
+            <el-form-item label="签名" prop="sign">
+                <el-input v-model="modifyForm.sign" autocomplete="off" clearable></el-input>
+            </el-form-item>
+
+            <el-form-item label="地址" prop="address">
+                <el-input v-model="modifyForm.address" autocomplete="off" clearable></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <!--<el-button size="mini" @click="resetForm('modifyForm')">重 置</el-button>-->
+            <el-button type="primary" size="mini" @click="modifyAccount();">保 存</el-button>
+        </div>
+    </el-dialog>
+
+</div>
+</body>
+<script src="js/vue.js"></script>
+<script src="js/index.js"></script>
+<script src="js/axios.min.js"></script>
+<script src="js/vuescroll-native.js"></script>
+<script src="js/vuescroll-slide.js"></script>
+<script src="js/vuescroll.js"></script>
+<script src="js/jquery-3.2.1.min.js"></script>
+<script scr="js/utils.js"></script>
+<script scr="js/msg.js"></script>
+<script type="text/javascript">
+    /**
+     * 页面加载完毕打印键值对对象
+     */
+    window.onload = function () {
+
+    };
+    new Vue({
+        el:"#information",
+        data:function(){
+            return{
+                //账户信息
+                id: null,
+                nickname: null,
+                age: null,
+                address: null,
+                gender: null,
+                sign: null,
+                avatar: null,
+                //交易信息
+                current:1,
+                size:3,
+                total:0,
+                tableData:[],
+                status:null,
+
+                //修改账号弹窗参数
+                modifyDgTitle:null,
+                modifyDgVisible:false,
+                modifyForm:{
+                    id:null,
+                    nickname: null,
+                    gender:null,
+                    sign:null,
+                    address:null,
+                },
+                modifyFormRules:{
+                    nickname: [
+                        { required: true, message: '请输入姓名', trigger: 'blur' },
+                        { min: 2,  message: '不可少于2个字符', trigger: 'blur' }
+                    ],
+                    gender:[
+                        {trigger: ['blur','change']}
+                    ],
+                    sign:[
+                        { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+                        { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
+                    ],
+                    address:[
+                        { required: true, message: '请输入用户名', trigger: 'blur' },
+                        { min: 2,  message: '不可少于2个字符', trigger: 'blur' }
+                    ],
+                },
+            }
+        },
+        methods:{
+            initForm:function(){
+                const _this=this;
+                console.log("initForm");
+                console.log(_this.id);
+                axios.get('http://'+window.location.host+'/user/getUserData',{params:{id:_this.id}})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.nickname=response.data.rtnData.nickname;
+                            _this.age=response.data.rtnData.age;
+                            _this.address=response.data.rtnData.defaultAddress;
+                            _this.gender=response.data.rtnData.gender;
+                            _this.sign=response.data.rtnData.sign;
+                            _this.avatar=response.data.rtnData.avatar;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '初始化个人信息'+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            initTable:function(){
+                const _this=this;
+                console.log("initTable");
+                console.log(_this.id);
+                axios.post('http://'+window.location.host+'/deal/getDealPage',{size:_this.size,current:_this.current,id:_this.id,status:_this.status})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.tableData=response.data.rtnData;
+                            _this.total=response.data.total;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '初始化交易列表数据'+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            dialogClose(visible,form){
+                //form 重置没做到
+                if(form){
+                    this.resetForm(form);
+                }
+                this[visible]=false;
+            },
+            openDg_modifyUser(){
+                this.modifyDgTitle='修改用户信息（'+this.id+"）"
+                this.modifyForm.id=this.id;
+                this.modifyForm.nickname=this.nickname;
+                this.modifyForm.address=this.address;
+                this.modifyForm.sign=this.sign;
+                this.modifyForm.gender=this.gender;
+                this.modifyDgVisible=true;
+            },
+            modifyAccount(){
+                var _this=this;
+                axios.post('http://'+window.location.host+'/user/modifyUser',
+                    {   id:_this.modifyForm.id,
+                        nickname: _this.modifyForm.nickname,
+                        address:_this.modifyForm.address,
+                        sign:_this.modifyForm.sign,
+                        gender:_this.modifyForm.gender,
+                    }).then(function (response) {
+                    if(response.data.rtnFlag=="9999"){//请求成功
+                        _this.$bdmsg({
+                            type:"toast",
+                            msgType:"success",
+                            message: '账号信息修改成功！'
+                        });
+                        _this.modifyDgVisible=false;
+                        _this.initTable();
+                    }else if(response.data.rtnFlag=="1001"){//未登录
+                        //_this.loginDgVisible=true;
+                    }else{
+                        _this.$bdmsg({
+                            type:"toast",
+                            msgType:"error",
+                            message: '账号信息修改失败！'+response.data.rtnMsg
+                        });
+                    }
+                }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+
+            handleSizeChange:function(val) {
+                this.size=val;
+                this.initTable();
+            },
+            handleCurrentChange:function(val) {
+                this.current=val;
+                this.initTable();
+            },
+            handleTabClick:function(obj){
+                if(obj.name=="all"){
+                    this.status=null;
+                    this.initTable();
+                } else{
+                    this.status=obj.name;
+                    this.initTable();
+                }
+                this.current=1;
+             },
+        },
+        mounted: function() {
+            const _this=this;
+            var url = window.location.href;
+            _this.id =  url.split("?")[1].split("=")[1];
+            console.log("init");
+            console.log(_this.id);
+            this.initForm();
+            this.initTable();
+        },
+    });
+</script>
+</html>

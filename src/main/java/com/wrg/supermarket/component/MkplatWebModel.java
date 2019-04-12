@@ -7,9 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 
-/**
- * Created by bigsm on 2017/9/19.
- */
 public class MkplatWebModel<T> implements Serializable {
 
     private static final long serialVersionUID = 8745446362620948874L;
@@ -35,11 +32,11 @@ public class MkplatWebModel<T> implements Serializable {
     public static <T extends Object> MkplatWebModel<T> convertMetroPayWebModel(T t) {
         MkplatWebModel<T> result = new MkplatWebModel<T>();
 
-        result.setErrCode(PlatErrorCode.SUCCESS.getCode());
+        result.setRtnFlag(PlatErrorCode.SUCCESS.getCode());
 
-        result.setErrMsg(PlatErrorCode.SUCCESS.getDesc());
+        result.setRtnMsg(PlatErrorCode.SUCCESS.getDesc());
 
-        result.setData(t);
+        result.setRtnData(t);
 
         return result;
     }
@@ -47,11 +44,11 @@ public class MkplatWebModel<T> implements Serializable {
     public static <T extends Object> MkplatWebModel<T> convertMetroPayWebModel(Long total, T t) {
         MkplatWebModel<T> result = new MkplatWebModel<T>();
 
-        result.setErrCode(PlatErrorCode.SUCCESS.getCode());
+        result.setRtnFlag(PlatErrorCode.SUCCESS.getCode());
 
-        result.setErrMsg(PlatErrorCode.SUCCESS.getDesc());
+        result.setRtnMsg(PlatErrorCode.SUCCESS.getDesc());
 
-        result.setData(t);
+        result.setRtnData(t);
 
         result.setTotal(total);
 
@@ -61,19 +58,43 @@ public class MkplatWebModel<T> implements Serializable {
     public static MkplatWebModel success() {
         MkplatWebModel result = new MkplatWebModel();
 
-        result.setErrCode(PlatErrorCode.SUCCESS.getCode());
+        result.setRtnFlag(PlatErrorCode.SUCCESS.getCode());
 
-        result.setErrMsg(PlatErrorCode.SUCCESS.getDesc());
+        result.setRtnMsg(PlatErrorCode.SUCCESS.getDesc());
 
+        return result;
+    }
+
+    public static MkplatWebModel success(String rtnMsg) {
+        MkplatWebModel result = new MkplatWebModel();
+
+        result.setRtnFlag(PlatErrorCode.SUCCESS.getCode());
+
+        result.setRtnMsg(rtnMsg);
+
+        return result;
+    }
+
+    public static MkplatWebModel errMsg (String rtnMsg){
+        MkplatWebModel result = new MkplatWebModel();
+        result.setRtnFlag(ResponseRtnFlag.SYSTEM_ERROR);
+        result.setRtnMsg(rtnMsg);
+
+        return result;
+    }
+
+    public static MkplatWebModel error (){
+        MkplatWebModel result = new MkplatWebModel();
+        result.setRtnFlag(ResponseRtnFlag.SYSTEM_ERROR);
         return result;
     }
 
     public static <T extends Object> MkplatWebModel<T> convertMetroPayWebModel(MkplatException pe) {
         MkplatWebModel<T> result = new MkplatWebModel<T>();
 
-        result.setErrCode(pe.getErrorCode().getCode());
+        result.setRtnFlag(pe.getErrorCode().getCode());
 
-        result.setErrMsg(StringUtils.isEmpty(pe.getMessage()) ? pe.getErrorCode().getDesc() : pe.getMessage());
+        result.setRtnMsg(StringUtils.isEmpty(pe.getMessage()) ? pe.getErrorCode().getDesc() : pe.getMessage());
 
         return result;
     }
@@ -83,35 +104,35 @@ public class MkplatWebModel<T> implements Serializable {
     }
 
 
-    public String getErrCode() {
+    public String getRtnFlag() {
         return rtnFlag;
     }
 
-    public void setErrCode(String errCode) {
-        this.rtnFlag = errCode;
-    }
-
-    public String getErrMsg() {
+    public String getRtnMsg() {
         return rtnMsg;
-    }
-
-    public void setErrMsg(String errMsg) {
-        this.rtnMsg = errMsg;
-    }
-
-    public T getData() {
-        return rtnData;
-    }
-
-    public void setData(T data) {
-        this.rtnData = data;
     }
 
     public Long getTotal() {
         return total;
     }
 
+    public T getRtnData() {
+        return rtnData;
+    }
+
+    public void setRtnFlag(String rtnFlag) {
+        this.rtnFlag = rtnFlag;
+    }
+
+    public void setRtnMsg(String rtnMsg) {
+        this.rtnMsg = rtnMsg;
+    }
+
     public void setTotal(Long total) {
         this.total = total;
+    }
+
+    public void setRtnData(T rtnData) {
+        this.rtnData = rtnData;
     }
 }

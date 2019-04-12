@@ -10,9 +10,11 @@
 
 </head>
 <body>
+<background src=""></background>
 <div id="login" class="divForm">
 <el-card shadow="hover">
         <el-form ref="loginForm" :inline="true" :model="loginForm" label-width="70px" size="mini">
+            <el-form-item label="用户登录"></el-form-item>
             <el-form-item label="账号" prop="username">
                 <el-input v-model="loginForm.username" size="mini" autocomplete="off" clearable></el-input>
             </el-form-item><br>
@@ -52,6 +54,7 @@
     }
 </style>
 <script type="text/javascript">
+
     new Vue({
         el:'#login',
         data:function () {
@@ -64,22 +67,19 @@
         },
         methods:{
             login(){
-                console.log("000000000000");
                 this.loading=true;
                 var _this=this;
                 axios.get('http://'+window.location.host+'/login',
                     {params:{username:_this.loginForm.username?_this.loginForm.username:null,
-                            password:_this.loginForm.password?+_this.loginForm.password:null,
+                            password:_this.loginForm.password?_this.loginForm.password:null,
                         }}).then(function (response) {
                     if(response.data.rtnFlag=="9999"){//请求成功
-                        console.log("111111111111111111");
-                        window.location.href = "shop.html";
+                        //window.localStorage.setItem("username", response.data.rtnData.username)
+                        window.location.href = "shop.html?avatar="+response.data.rtnData.avatar+"&id="+response.data.rtnData.id;
                         console.log(response.data.rtnData);
                     }else if(response.data.rtnFlag=="1001"){//未登录
                         // _this.loginDgVisible=true;
                     }else{
-                        console.log("22222222222222222");
-                        console.log(response);
 
                         /*
                         _this.$bdmsg({

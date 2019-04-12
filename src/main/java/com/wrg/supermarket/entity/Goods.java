@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
  **/
 @TableName("goods")
 public class Goods implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
     private Float price;
     private String name;

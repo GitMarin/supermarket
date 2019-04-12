@@ -7,5 +7,7 @@ import com.wrg.supermarket.entity.Goods;
 import java.util.Map;
 
 public interface IGoodsService extends IService<Goods> {
+
     MkplatWebModel getData(Map<String,Object> map);
+    MkplatWebModel getOneData(String id);
 }
