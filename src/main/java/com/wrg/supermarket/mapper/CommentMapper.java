@@ -1,7 +1,8 @@
 package com.wrg.supermarket.mapper;
 
+
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wrg.supermarket.entity.Deal;
+import com.wrg.supermarket.entity.Comment;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -10,8 +11,8 @@ import org.springframework.stereotype.Repository;
  * </p>
  *
  * @author Wang Rengang
- * @since 2019-04-10
+ * @since 2019-04-12
  */
 @Repository
-public interface DealMapper extends BaseMapper<Deal> {
+public interface CommentMapper extends BaseMapper<Comment> {
 }

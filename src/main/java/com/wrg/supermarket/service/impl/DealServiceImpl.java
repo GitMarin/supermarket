@@ -14,9 +14,6 @@ import com.wrg.supermarket.mapper.ShopMapper;
 import com.wrg.supermarket.service.IDealService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.wrg.supermarket.component.JavaBeanUtil;
-
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,7 +59,7 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
             //存放 创建时间、交易状态和交易金额 等deal本身存放的数据
             resultMap.put("createTime",deal.getCreateTime().toString().replaceAll("T"," "));
             resultMap.put("status",deal.getStatus());
-            resultMap.put("dealPrice",deal.getdealPrice());
+            resultMap.put("dealPrice",deal.getDealPrice());
             //将deal中的shopId在shop表中进行转换，然后存放
             String shopName=shopMapper.selectById(deal.getShopId()).getName();
             resultMap.put("shopName",shopName);
@@ -79,7 +76,7 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
                 Map<String, Object> dealGoodsMap = new HashMap<>(1);
                 DealDetails dealDetails=dealDetailsList.get(j);
                 //存放商品价格和商品数量等信息
-                dealGoodsMap.put("goodsPrice",dealDetails.getPrice());
+                dealGoodsMap.put("goodsPrice",dealDetails.getGoodsPrice());
                 dealGoodsMap.put("goodsNumber",dealDetails.getGoodsNumber());
                 //将dealDetails中的goodsId在goods表中转换成goodsName，然后存放
                 String goodsName=goodsMapper.selectById(dealDetails.getGoodsId()).getName();

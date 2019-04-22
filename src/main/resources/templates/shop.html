@@ -2,7 +2,7 @@
 <html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8">
-    <title>商品列表</title>
+    <title>店铺信息</title>
     <link rel="stylesheet" type="text/css" href="styles/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="styles/index.css">
     <link rel="stylesheet" type="text/css" href="styles/vuescroll.css">
@@ -18,78 +18,239 @@
             border: 1px solid #eee;
         }
         #box img{
-            width: 200px;
-            height: 200px;
+            width: 150px;
+            height: 150px;
         }
     </style>
 
 </head>
 <body>
-<div id="shop">
+<div id="shop" style="width: 100%">
     <el-container>
-        <el-header height="80px">
+        <el-header>
             <!--存放头像等信息-->
             <el-row>
                 <el-col :span="10">
-                    <label>用户{{userId}}</label><br>
+                    <label>超市{{shopId}}</label><br>
                     <el-popover
                             placement="right-start"
                             width="200"
-                            trigger="hover"
-                            @show="showUser">
+                            trigger="hover">
                         <el-card class="box-card">
                             <label>账号：{{id}}</label><br>
-                            <label>昵称：{{nickname}}</label><br>
-                            <label>评论：{{remark}}</label>
+                            <label>名字：{{name}}</label><br>
+                            <label>简介：{{remark}}</label>
+                            <el-button>修改信息</el-button>
                         </el-card>
-                        <img :src="avatar" width="60px" height="60px" alt="用户头像" slot="reference" @click="avatarClick(id)">
+                        <img :src="picLink" width="60px" height="60px" alt="超市头像" slot="reference">
                     </el-popover>
                 </el-col>
-                <el-col :span="14"><br>
-                <el-form ref="searchForm" :inline="true" :model="searchForm" class="demo-form-inline" >
-                    <el-form-item>
-                        <el-input v-model="searchForm.name" autocomplete="off" clearable></el-input>
-                    </el-form-item>
-                    <el-form-item>
-                        <el-button type="primary" @click="search">搜索</el-button>
-                    </el-form-item>
-                    <!--商品和店铺选项-->
-                    <!--<el-tabs @tab-click="handleTabClick">-->
-                        <!--<el-tab-pane label="" name="all"></el-tab-pane>-->
-                    <!--</el-tabs>-->
-                </el-form>
-                </el-col>
             </el-row>
-
         </el-header>
-        <el-main>
+        <el-main style="margin: 20px auto 0px;width: 90%;">
+            <el-form ref="form" :inline="true" :model="searchForm" label-width="80px" size="mini">
+                <el-tabs v-model="activeName" @tab-click="handleTabClick">
+                    <el-tab-pane :label="tabMap.all" name="all"></el-tab-pane>
+                    <el-tab-pane :label="tabMap.online" name="online"></el-tab-pane>
+                    <el-tab-pane :label="tabMap.offline" name="offline"></el-tab-pane>
+                    <el-tab-pane :label="tabMap.soldOut" name="soldOut"></el-tab-pane>
+                    <el-tab-pane :label="tabMap.prepared" name="prepared"></el-tab-pane>
+                </el-tabs>
+                <el-card  style="margin-top: -16px;height: 80px">
+                    <el-form-item label="商品名">
+                        <el-input v-model="searchForm.name" size="mini"></el-input>
+                    </el-form-item>
+                    <el-form-item label="商品类型" prop="typeId">
+                        <el-cascader expand-trigger="hover" :options="options"  placeholder="请选择类型" :clearable="true"
+                                     :change-on-select="true" :show-all-levels="false" @change="searchHandleChange">
+                        </el-cascader>
+                    </el-form-item>
+                    <el-form-item size="mini">
+                        <el-button type="primary" @click="search">查询</el-button>
+                    </el-form-item>
+                </el-card>
+            </el-form>
             <el-card>
+                <el-button plain icon="el-icon-share" size="mini" style="float:right;margin-top: -6px" @click="openAddGoods">新建商品</el-button>
+                <el-table :data="tableData" border height="300" size="mini">
+                    <el-table-column prop="name" label="商品名" >
+                    </el-table-column>
+                    <el-table-column prop="typeName" label="类型" >
+                    </el-table-column>
+                    <el-table-column prop="brandName" label="品牌" >
+                    </el-table-column>
+                    <el-table-column prop="marque" label="型号" >
+                    </el-table-column>
+                    <el-table-column prop="depict" label="描述" >
+                    </el-table-column>
+                    <el-table-column prop="createTime" label="创建时间" width="180">
+                    </el-table-column>
+                    <el-table-column label="状态" width="80">
+                        <template slot-scope="scope" >
+                            <el-tag v-if="scope.row.status == 'online'">上架中</el-tag>
+                            <el-tag type="info" v-if="scope.row.status == 'offline'">已下架</el-tag>
+                            <el-tag type="danger" v-if="scope.row.status == 'soldOut'">售罄</el-tag>
+                            <el-tag type="success" v-if="scope.row.status == 'prepared'">准备中</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="价格" width="180">
+                        <template slot-scope="scope" >
+                            <label>参考价：{{scope.row.price}}元</label>
+                            <label >现价：{{scope.row.currentPrice}}元</label>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="number" label="数量" width="80">
+                    </el-table-column>
+                    <el-table-column prop="dealNumber" label="交易量" width="80">
+                    </el-table-column>
+                    <el-table-column label="操作" width="180">
+                        <template slot-scope="scope">
+                            <el-button-group>
+                                <el-button  @click="openShopGoodsModify(scope.row)" v-if="scope.row.status != 'online'" size="small">修改</el-button>
+                                <el-button  @click="onlineShopGoods(scope.row)" v-if="scope.row.status == 'prepared'" size="small">上架</el-button>
+                                <el-button  @click="offlineShopGoods(scope.row)" v-if="scope.row.status == 'online'" size="small">下架</el-button>
+                            </el-button-group>
+                        </template>
+                    </el-table-column>
+                </el-table>
+                <el-pagination
+                        :page-sizes="[6, 12, 24, 48]"
+                        :current-page="searchForm.current"
+                        :page-size.sync ="searchForm.size"
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="searchForm.total">
+                </el-pagination>
+            </el-card>
+        </el-main>
+    </el-container>
+    <!--新建商品弹窗-->
+    <el-dialog id="addDg" :title="addDgTitle" :visible.sync="addDgVisible"  width="550px">
+        <el-button type="text" @click="openChooseDg">选择系统已登记商品</el-button><br/>
+        <el-button type="text" @click="openRegisterDg">登记新商品</el-button>
+    </el-dialog>
+    <!--新建商品弹窗结束-->
+
+    <!--选择系统已登记商品 弹窗-->
+    <el-dialog title="选择系统已登记商品" :visible.sync="chooseDgVisible" width="840px">
+    <!--用table展示所有商品信息-->
+        <div>
+            <el-cascader expand-trigger="hover" :options="options"  placeholder="请选择类型" :clearable="true"
+                         :change-on-select="true" :show-all-levels="false" @change="handleChange">
+            </el-cascader>
+            <el-input v-model="searchName" placeholder="请输入商品名" style="width: 180px"></el-input>
+            <el-button type="primary" @click="getGoodsPage">搜索</el-button>
+        </div>
+        <el-card>
             <div id="box">
                 <ul>
-                    <li v-for="v in cardData">
-                        <img v-bind:src="v.condensePicLink" alt="v.name" @click="goodsClick(v.id)">
-                        <h4>{{v.name}}</h4>
-                        <p>{{v.depict}}</p>
-                        <p>评论量：{{v.commentNumber}}   ￥{{v.price}}元</p>
+                    <li v-for="v in cardData" style="width: 162px;height: 310px">
+                        <img v-bind:src="v.condensePicLink" alt="v.name" @click="goodsClick(v)">
+                        <p>{{v.name}}</p>
+                        <p>{{v.typeName}}</p>
+                        <p>{{v.brandName}} {{v.marque}} </p>
+                        <p> ￥{{v.price}}元</p>
                     </li>
                 </ul>
             </div>
             <div>
                 <br>
-            <el-pagination
-                    :page-sizes="[6, 12, 24, 48]"
-                    :current-page="searchForm.current"
-                    :page-size.sync ="searchForm.size"
-                    @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange"
-                    layout="total, sizes, prev, pager, next, jumper"
-                    :total="searchForm.total">
-            </el-pagination>
+                <el-pagination
+                        :page-sizes="[8, 12, 24, 48]"
+                        :current-page="current"
+                        :page-size.sync ="size"
+                        @size-change="goodsHandleSizeChange"
+                        @current-change="goodsHandleCurrentChange"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="total">
+                </el-pagination>
             </div>
-            </el-card>
-        </el-main>
-    </el-container>
+        </el-card>
+    <!--        使用类型进行选择，关键字搜索-->
+    <!--        选择后，将数据进行操作 之后考虑-->
+    <!--        关闭弹窗-->
+    </el-dialog>
+    <!--选择系统已登记商品 弹窗 结束-->
 
+    <!--新建商品 补充数据-->
+    <el-dialog  title="补充商品信息" :visible.sync="replenishDgVisible" width="300px" @close="resetForm('replenishForm')">
+        <el-form ref="replenishForm" :inline="true" :model="replenishForm" label-width="80px" size="mini">
+            <el-form-item>
+                <img v-bind:src="replenishForm.condensePicLink" alt="replenishForm.name">
+            </el-form-item>
+            <el-form-item label="名字">
+                <el-input v-model="replenishForm.name" size="mini"></el-input>
+            </el-form-item>
+            <el-form-item label="描述" prop="depict">
+                <el-input v-model="replenishForm.depict" size="mini"></el-input>
+            </el-form-item>
+            <el-form-item label="定价" prop="currentPrice">
+                <el-input v-model="replenishForm.currentPrice" size="mini"></el-input>
+            </el-form-item>
+            <el-form-item label="数量" prop="number">
+                <template>
+                    <el-input-number v-model="replenishForm.number" :min="1" :max="9999" ></el-input-number>
+                </template>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="saveShopGoods">新建</el-button>
+                <el-button @click="resetForm('replenishForm')">重置</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--新建商品 补充数据 结束-->
+
+
+    <!--登记新商品 弹窗-->
+    <el-dialog title="登记新商品信息" :visible.sync="registerDgVisible" width="350px" @close="resetForm('registerGoodsForm')">
+    <!--提示登记新商品需要管理员通过-->
+    <!--        使用form存放数据，选择类型，填写基本信息-->
+    <!--        结束 等待管理员 通过-->
+        <el-form ref="registerGoodsForm" :inline="true" :model="registerGoodsForm" label-width="80px" size="mini">
+            <el-form-item label="商品类型" prop="typeId">
+                <el-cascader expand-trigger="hover" :options="options"  placeholder="请选择类型" :clearable="true"
+                             :change-on-select="true" :show-all-levels="false" @change="registerGoodsHandleChange">
+                </el-cascader>
+            </el-form-item>
+            <el-form-item label="品牌名" prop="brandName">
+                <el-input v-model="registerGoodsForm.brandName" size="mini"></el-input>
+            </el-form-item>
+            <el-form-item label="名字" prop="name">
+                <el-input v-model="registerGoodsForm.name" size="mini"></el-input>
+            </el-form-item>
+            <el-form-item label="型号" prop="marque">
+                <el-input v-model="registerGoodsForm.marque" size="mini"></el-input>
+            </el-form-item>
+            <el-form-item label="参考价" prop="price">
+                <el-input v-model="registerGoodsForm.price" size="mini"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="saveGoods">登记</el-button>
+                <el-button @click="resetForm('registerGoodsForm')">重置</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--登记新商品 弹窗 结束-->
+
+    <el-dialog title="修改商品信息" :visible.sync="modifyDgVisible" width="350px" @close="resetForm('modifyForm')">
+        <el-form ref="modifyForm" :inline="true" :model="modifyForm" label-width="80px" size="mini">
+            <el-form-item label="价格" prop="price">
+                <el-input v-model="modifyForm.price" size="mini"></el-input>
+            </el-form-item>
+            <el-form-item label="描述" prop="depict">
+                <el-input v-model="modifyForm.depict" size="mini"></el-input>
+            </el-form-item>
+            <el-form-item label="数量" prop="number">
+                <template>
+                    <el-input-number v-model="modifyForm.number" :min="1" :max="9999"></el-input-number>
+                </template>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="modifyShopGoods" >修改</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
 </div>
 </body>
 <script src="js/vue.js"></script>
@@ -100,88 +261,82 @@
 <script src="js/vuescroll.js"></script>
 <script src="js/jquery-3.2.1.min.js"></script>
 <script type="text/javascript">
-    /**
-     * 页面加载完毕打印键值对对象
-     */
-    window.onload = function () {
-        const _this=this;
-
-    };
     new Vue({
         el:"#shop",
         data:function(){
             return{
-                cardData:[],
+                tableData:[],
+                activeName:"all",
                 searchForm: {
                     current:1,
                     size:6,
                     total:null,
                     name:null,
+                    status:null,
+                    typeId:null,
                 },
-                userId:0,
+                tabMap:{
+                    all:"全部",
+                    online:"上架中",
+                    offline:"已下架",
+                    soldOut:"售罄",
+                    prepared:"准备中",
+                },
+                shopId:0,
                 id:null,
-                nickname:null,
+                name:null,
                 remark:null,
-                avatar:null,
+                picLink:null,
+
+                //新建商品弹窗
+                addDgTitle:"新建商品",
+                addDgVisible:false,
+                addForm:{},
+                addFormRules:{},
+
+                //选择goods商品弹窗
+                options: [],
+                cardData:[],
+                typeId:null,
+                searchName:null,
+                chooseDgVisible:false,
+                current:1,
+                size:8,
+                total:null,
+                //补充信息弹窗信息
+                replenishDgVisible:false,
+                replenishForm: {
+                    number: 1
+                },
+                //登记新商品弹窗
+                registerDgVisible:false,
+                registerGoodsForm:{},
+
+                //修改商品信息弹窗
+                modifyDgVisible:false,
+                modifyForm:{
+                    number:1
+                }
             }
 
         },
         methods:{
-            showUser(){
+            showShop(){
                 const _this=this;
-                console.log(_this.userId);
-                axios.get('http://'+window.location.host+'/user/getUserData',{params:{id:_this.userId}})
+                axios.get('http://'+window.location.host+'/shop/getShop',{params:{id:_this.shopId}})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
-                            _this.nickname=response.data.rtnData.nickname;
+                            _this.name=response.data.rtnData.name;
                             _this.id=response.data.rtnData.id;
                             _this.remark=response.data.rtnData.remark;
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
-                            // _this.$bdmsg({
-                            //     type:"toast",
-                            //     msgType:"error",
-                            //     message: msg+'失败！'+response.data.rtnMsg
-                            // });
-                        }
-                    }).catch(function (error) {
-                        // handle error
-                        console.log(error);
-                    }).then(function () {
-                         // always executed
-                    });
-
-            },
-            avatarMouseOver(userId){
-                console.log(userId);
-            },
-
-            goodsClick(id){
-                window.location.href = "details.html?id="+id;
-            },
-            avatarClick(id){
-                window.location.href = "information.html?id="+id;
-            },
-            search(){
-                this.initTable();
-            },
-            initTable:function(){
-                const _this=this;
-                axios.post('http://'+window.location.host+'/goods/getData',_this.searchForm)
-                    .then(function (response) {
-                        if(response.data.rtnFlag=="9999"){//请求成功
-                            _this.cardData=response.data.rtnData;
-                            _this.searchForm.total=response.data.total;
-                        }else if(response.data.rtnFlag=="1001"){//未登录
-                            //_this.loginDgVisible=true;
-                        }else{
-                            console.log(response);
-                            // _this.$bdmsg({
-                            //     type:"toast",
-                            //     msgType:"error",
-                            //     message: msg+'失败！'+response.data.rtnMsg
-                            // });
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: msg+'失败！'+response.data.rtnMsg
+                            });
                         }
                     }).catch(function (error) {
                     // handle error
@@ -189,6 +344,80 @@
                 }).then(function () {
                     // always executed
                 });
+
+            },
+            search(){
+                this.initTable();
+            },
+            searchHandleChange(value){
+                this.searchForm.typeId=value[value.length-1];
+            },
+            initTable:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/getShopGoodsPage',{form:_this.searchForm,shopId:_this.shopId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.tableData=response.data.rtnData.dataList;
+                            _this.searchForm.total=response.data.total;
+                            _this.tabMap.all="全部("+response.data.rtnData.dataStatistics.all+")";
+                            _this.tabMap.offline="已下架("+response.data.rtnData.dataStatistics.offline+")";
+                            _this.tabMap.online="上架中("+response.data.rtnData.dataStatistics.online+")";
+                            _this.tabMap.soldOut="售罄("+response.data.rtnData.dataStatistics.soldOut+")";
+                            _this.tabMap.prepared="准备中("+response.data.rtnData.dataStatistics.prepared+")";
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: msg+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            getGoodsPage:function(){
+                const _this=this;
+                _this.loading=true;
+                axios.post('http://'+window.location.host+'/goods/getGoodsPage',{size:_this.size,
+                    current:_this.current,typeId:_this.typeId,name:_this.searchName,status:"enabled"})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.cardData=response.data.rtnData;
+                            _this.total=response.data.total;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: "初始化商品数据"+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            handleChange:function(value){
+                this.typeId=value[value.length-1];
+            },
+            handleTabClick:function(obj){
+                if(obj.name=="all"){
+                    this.searchForm.status=null;
+                    this.initTable();
+                }else{
+                    this.searchForm.status=obj.name;
+                    this.initTable();
+                }
+                this.searchForm.current=1;
             },
             handleSizeChange:function(val) {
                 this.searchForm.size=val;
@@ -198,14 +427,201 @@
                 this.searchForm.current=val;
                 this.initTable();
             },
+            //打开新建商品弹窗
+            openAddGoods:function () {
+                this.addDgVisible=true;
+            },
+            //关闭新建商品弹窗
+            dialogClose:function(formName){
+                this.$refs[formName].resetFields();
+                this.registerDgVisible=false;
+            },
+
+            goodsHandleSizeChange:function(val){
+                this.size=val;
+                this.getGoodsPage();
+            },
+            goodsHandleCurrentChange:function(val){
+                this.current=val;
+                this.getGoodsPage();
+            },
+            //打开选择商品弹窗
+            goodsClick:function(v){
+                this.chooseDgVisible=false;
+                this.replenishDgVisible=true;
+                this.replenishForm=v;
+            },
+            openChooseDg:function () {
+                this.chooseDgVisible=true;
+                this.getGoodsPage();
+            },
+            saveShopGoods:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/addShopGoods',{form:_this.replenishForm,shopId:_this.shopId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.replenishDgVisible=false;
+                            _this.addDgVisible=false;
+                            _this.initTable();
+                            _this.$message('新建超市商品数据成功！');
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$message.error('该商品已存在！');
+                            // _this.$bdmsg({
+                            //     type:"toast",
+                            //     msgType:"error",
+                            //     message: "新建超市商品数据"+'失败！'+response.data.rtnMsg
+                            // });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            //登记新商品弹窗
+            openRegisterDg:function(){
+                this.registerDgVisible=true;
+            },
+            registerGoodsHandleChange:function(value){
+                this.registerGoodsForm.typeId=value[value.length-1];
+            },
+            resetForm:function(formName){
+                const _this=this;
+                _this.$refs[formName].resetFields();
+            },
+            saveGoods:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/goods/addGoods',{form:_this.registerGoodsForm,status:"unaudited"})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.registerGoodsForm.id=response.data.rtnData.id;
+                            _this.registerDgVisible=false;
+                            _this.$message('新建商品数据成功！请等待管理员审核。');
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: "新建商品数据"+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            //修改商品信息
+            openShopGoodsModify:function(shopGoods){
+                this.modifyDgVisible=true;
+                this.modifyForm=JSON.parse(JSON.stringify(shopGoods));
+            },
+            modifyShopGoods:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/modifyShopGoods',{form:_this.modifyForm,shopId:_this.shopId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.modifyDgVisible=true;
+                            _this.initTable();
+                            _this.$message('修改超市商品数据成功！');
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            // _this.$bdmsg({
+                            //     type:"toast",
+                            //     msgType:"error",
+                            //     message: "新建超市商品数据"+'失败！'+response.data.rtnMsg
+                            // });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            onlineShopGoods:function(shopGoods){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/onlineShopGoods',{form:shopGoods,shopId:_this.shopId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.initTable();
+                            _this.$message('上架超市商品成功！');
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else if(response.data.rtnFlag=="3001"){
+                            _this.$message.error('商品数量错误！');
+                        }else if(response.data.rtnFlag=="3004"){
+                            _this.$message.error('该商品已被冻结不能上架！');
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            offlineShopGoods:function(shopGoods){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/offlineShopGoods',{form:shopGoods,shopId:_this.shopId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.initTable();
+                            _this.$message('下架超市商品成功！');
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else {
+                            _this.$message.error('下架超市商品失败！');
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+
+            getParentGoodsType:function(){
+                const _this=this;
+                axios.get('http://'+window.location.host+'/goodsType/getParentGoodsType')
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.options=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: "获取上级类型数据"+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
         },
         mounted: function() {
             const _this=this;
             var url = window.location.href;
             var row =  url.split("?")[1].split("&");
-            _this.avatar=row[0].split("=")[1];
-            _this.userId=row[1].split("=")[1];
+            _this.picLink=row[0].split("=")[1];
+            _this.shopId=row[1].split("=")[1];
+            this.getParentGoodsType();
             this.initTable();
+            this.showShop();
         },
     });
 </script>

@@ -25,9 +25,9 @@ public class GoodsController {
     private IGoodsService service;
 
     @ResponseBody
-    @RequestMapping("/getData")
-    public MkplatWebModel getData(@RequestBody Map<String,Object> map){
-        return service.getData(map);
+    @RequestMapping("/getGoodsPage")
+    public MkplatWebModel getGoodsPage(@RequestBody Map<String,Object> map){
+        return service.getGoodsPage(map);
     }
 
     @ResponseBody
@@ -35,4 +35,26 @@ public class GoodsController {
     public MkplatWebModel getOneData(@RequestParam("id")String id){
         return service.getOneData(id);
     }
+
+    @ResponseBody
+    @RequestMapping("/addGoods")
+    public MkplatWebModel addGoods(@RequestBody Map<String,Object> map){
+        Map<String,Object> form = (Map<String, Object>) map.get("form");
+        form.put("status",map.get("status"));
+        return service.addGoods(form);
+    }
+
+    @ResponseBody
+    @RequestMapping("/modifyGoods")
+    public MkplatWebModel modifyGoods(@RequestBody Map<String,Object> map){
+        return service.modifyGoods(map);
+    }
+
+    @ResponseBody
+    @RequestMapping("/modifyGoodsStatus")
+    public MkplatWebModel modifyGoodsStatus(@RequestBody Map<String,Object> map){
+        return service.modifyGoodsStatus(map);
+    }
+
+
 }

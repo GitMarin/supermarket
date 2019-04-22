@@ -10,12 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @ClassName UserMapper
- * @Description TODO
- * @Author Wang Rengang
- * @Date 2019/3/28 23:27
- * @Version 1.0
- **/
+ * <p>
+ *  Mapper 接口
+ * </p>
+ *
+ * @author Wang Rengang
+ * @since 2019-03-28
+ */
 @Repository
 public interface UserMapper extends BaseMapper<User>{
 }

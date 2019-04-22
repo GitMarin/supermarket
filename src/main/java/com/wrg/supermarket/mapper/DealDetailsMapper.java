@@ -5,12 +5,13 @@ import com.wrg.supermarket.entity.DealDetails;
 import org.springframework.stereotype.Repository;
 
 /**
- * @ClassName DealDetailsMapper
- * @Description TODO
- * @Author Wang Rengang
- * @Date 2019/4/11 11:49
- * @Version 1.0
- **/
+ * <p>
+ *  Mapper 接口
+ * </p>
+ *
+ * @author Wang Rengang
+ * @since 2019-04-11
+ */
 @Repository
 public interface DealDetailsMapper extends BaseMapper<DealDetails> {
 }

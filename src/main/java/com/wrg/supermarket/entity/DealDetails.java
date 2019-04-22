@@ -3,6 +3,8 @@ package com.wrg.supermarket.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * @ClassName DealDetails
@@ -16,8 +18,9 @@ public class DealDetails implements Serializable {
     private static final long serialVersionUID = 1L;
     private String id;
     private String goodsId;
-    private String goodsNumber;
-    private Float goodsPrice;
+    private Integer goodsNumber;
+    private BigDecimal goodsPrice;
+    private String commentId;
 
     public String getId() {
         return id;
@@ -35,21 +38,27 @@ public class DealDetails implements Serializable {
         this.goodsId = goodsId;
     }
 
-    public String getGoodsNumber() {
+    public Integer getGoodsNumber() {
         return goodsNumber;
     }
 
-    public void setGoodsNumber(String goodsNumber) {
+    public void setGoodsNumber(Integer goodsNumber) {
         this.goodsNumber = goodsNumber;
     }
 
-    public Float getPrice() {
+    public BigDecimal getGoodsPrice() {
         return goodsPrice;
     }
 
-    public void setPrice(Float price) {
-        this.goodsPrice = price;
+    public void setGoodsPrice(BigDecimal goodsPrice) {
+        this.goodsPrice = goodsPrice;
     }
 
+    public String getCommentId() {
+        return commentId;
+    }
 
+    public void setCommentId(String commentId) {
+        this.commentId = commentId;
+    }
 }

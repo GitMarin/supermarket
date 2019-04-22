@@ -179,8 +179,6 @@
         methods:{
             initForm:function(){
                 const _this=this;
-                console.log("initForm");
-                console.log(_this.id);
                 axios.get('http://'+window.location.host+'/user/getUserData',{params:{id:_this.id}})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功

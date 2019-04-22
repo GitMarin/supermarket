@@ -33,6 +33,8 @@ public class MyMvcConfig extends WebMvcConfigurationSupport {
         registry.addViewController("/shop.html").setViewName("shop");
         registry.addViewController("/details.html").setViewName("details");
         registry.addViewController("/information.html").setViewName("information");
+        registry.addViewController("/index.html").setViewName("index");
+        registry.addViewController("/manage.html").setViewName("manage");
 
 
     }

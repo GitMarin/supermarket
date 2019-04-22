@@ -1,5 +1,7 @@
 package com.wrg.supermarket.service.impl;
 
+import com.baomidou.mybatisplus.core.injector.methods.SelectById;
+import com.wrg.supermarket.component.MkplatWebModel;
 import com.wrg.supermarket.entity.Shop;
 import com.wrg.supermarket.mapper.ShopMapper;
 import com.wrg.supermarket.service.IShopService;
@@ -17,4 +19,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IShopService {
 
+    @Override
+    public MkplatWebModel getShop(String id){
+        return MkplatWebModel.convertMetroPayWebModel(getById(id));
+    }
 }

@@ -10,11 +10,10 @@
 
 </head>
 <body>
-<background src=""></background>
 <div id="login" class="divForm">
 <el-card shadow="hover">
         <el-form ref="loginForm" :inline="true" :model="loginForm" label-width="70px" size="mini">
-            <el-form-item label="用户登录"></el-form-item>
+            <el-form-item :label="loginForm.labelName"></el-form-item>
             <el-form-item label="账号" prop="username">
                 <el-input v-model="loginForm.username" size="mini" autocomplete="off" clearable></el-input>
             </el-form-item><br>
@@ -22,11 +21,63 @@
                 <el-input v-model="loginForm.password" size="mini" type="password" autocomplete="off" clearable></el-input>
             </el-form-item><br>
             <el-form-item size="mini">
-                <el-button type="primary" @click="login">登录</el-button>
+                <el-button-group>
+                    <el-button type="primary" v-if="this.loginForm.labelName=='用户登录'" @click="loginUser">登录</el-button>
+                    <el-button type="primary" v-if="this.loginForm.labelName=='超市登录'" @click="loginShop">登录</el-button>
+                    <el-button type="primary" @click="openRegisterDg">注册</el-button>
+                    <el-button type="primary" v-if="this.loginForm.labelName=='超市登录'" @click="changeLabel">用户</el-button>
+                    <el-button type="primary" v-if="this.loginForm.labelName=='用户登录'" @click="changeLabel">超市</el-button>
+                </el-button-group>
             </el-form-item><br>
         </el-form>
 </el-card>
-
+<!--注册弹窗-->
+    <el-dialog id="registerDg" :title="registerDgTitle" :visible.sync="registerDgVisible"  width="550px" @close="dialogClose('registerForm')">
+        <el-form :model="registerForm"  :rules="registerFormRules" ref="registerForm" label-width="80px">
+            <el-form-item label="登陆名" prop="username">
+                <el-input v-model="registerForm.username" autocomplete="off" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="密码" prop="password">
+                <el-input type="password" v-model="registerForm.password" autocomplete="off" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="确认密码" prop="password2">
+                <el-input type="password" v-model="registerForm.password2" autocomplete="off" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="昵称" prop="nickname" v-if="this.loginForm.labelName=='用户登录'">
+                <el-input v-model="registerForm.nickname" autocomplete="off" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="名字" prop="name" v-if="this.loginForm.labelName=='超市登录'">
+                <el-input v-model="registerForm.name" autocomplete="off" clearable></el-input>
+            </el-form-item>
+            <el-row>
+                <el-col :span="10">
+                    <el-form-item label="性别" prop="gender"  v-if="this.loginForm.labelName=='用户登录'">
+                        <el-select v-model="registerForm.gender" placeholder="请选择性别">
+                            <el-option label="男" value="男"></el-option>
+                            <el-option label="女" value="女"></el-option>
+                            <el-option label="未知" value="未知"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="14">
+                    <el-form-item label="年龄" prop="year" v-if="this.loginForm.labelName=='用户登录'">
+                        <el-date-picker v-model="registerForm.year" type="year" placeholder="选择出生年">
+                        </el-date-picker>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-form-item label="签名" prop="sign" v-if="this.loginForm.labelName=='用户登录'">
+                <el-input v-model="registerForm.sign" autocomplete="off" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="简介" prop="remark" v-if="this.loginForm.labelName=='超市登录'">
+                <el-input v-model="registerForm.remark" autocomplete="off" clearable></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button type="primary" size="mini" @click="registerUser('registerForm')" v-if="this.loginForm.labelName=='用户登录'">注册</el-button>
+            <el-button type="primary" size="mini" @click="registerShop('registerForm')" v-if="this.loginForm.labelName=='超市登录'">注册</el-button>
+        </div>
+    </el-dialog>
 </div>
 
 
@@ -40,6 +91,7 @@
 <script src="js/vuescroll-slide.js"></script>
 <script src="js/vuescroll.js"></script>
 <script src="js/jquery-3.2.1.min.js"></script>
+<script src="js/msg.js"></script>
 <style type="text/css">
     .divForm{
         position: absolute;/*绝对定位*/
@@ -58,36 +110,129 @@
     new Vue({
         el:'#login',
         data:function () {
+            var validatePass2 = (rule, value, callback) => {
+                    if (value === '') {
+                        callback(new Error('请再次输入密码'))
+                    } else if (value !== this.registerForm.password) {
+                        callback(new Error('两次输入密码不一致!'))
+                    } else {
+                        callback()
+                    }
+            };
+            var validateUsername = (rule, value, callback) => {
+                if (value === null) {
+                    callback(new Error('请输入登陆名！'))
+                }else{
+                    if(this.loginForm.labelName=="用户登录") var str='/testUsername';
+                    else if(this.loginForm.labelName=="超市登录") var str='/testShopName';
+                    axios.post('http://'+window.location.host+str,{username:value})
+                        .then(function (response) {
+                            if(response.data.rtnFlag=="9999"){//请求成功
+                                if (response.data.rtnData.result==false) {
+                                    callback(new Error('该登陆名已存在！'))
+                                } else {
+                                    callback()
+                                }
+                            }else if(response.data.rtnFlag=="1001"){//未登录
+                                //_this.loginDgVisible=true;
+                            }else{
+                                //查询失败
+                            }
+                        });
+                }
+            };
+
             return {
+                //登陆数据
                 loginForm:{
+                    labelName:"用户登录",
                     username:'',
                     password:''
-                }
+                },
+                //注册弹窗参数
+                registerDgTitle:"用户注册",
+                registerDgVisible:false,
+                registerForm:{
+                    id:null,
+                    username:null,
+                    password:null,
+                    password2:null,
+                    nickname: null,
+                    gender:null,
+                    year:null,
+                    sign:null,
+                    remark:null,
+                    name:null,
+                },
+                registerFormRules:{
+                    username:[
+                        { required: true, validator: validateUsername, trigger: 'blur' },
+                        { min: 2,  message: '不可少于2个字符', trigger: 'blur' }
+                    ],
+                    password: [
+                        { required: true, message: '请输入密码', trigger: 'blur' },
+                        { pattern: /^(?![a-zA-Z]+$)(?![A-Z0-9]+$)(?![A-Z\W_]+$)(?![a-z0-9]+$)(?![a-z\W_]+$)(?![0-9\W_]+$)[a-zA-Z0-9\W_]{8,30}$/,
+                            message: '密码为数字，小写字母，大写字母，特殊符号至少包含三种，长度为8-30位' }
+                    ],
+                    password2: [
+                        { required: true, validator: validatePass2, trigger: 'blur' }
+                    ],
+                    nickname: [
+                        { required: true, message: '请输入昵称', trigger: 'blur' },
+                        { min: 2,  message: '不可少于2个字符', trigger: 'blur' }
+                    ],
+                    name: [
+                        { required: true, message: '请输入昵称', trigger: 'blur' },
+                        { min: 2,  message: '不可少于2个字符', trigger: 'blur' }
+                    ],
+                    gender:[
+                        {required: true, message: '请选择性别',trigger: ['blur','change']}
+                    ],
+                    year:[
+                        { required: true, message: '请选择', trigger: 'blur' }
+                    ],
+                    sign:[
+                        { required: true, message: '请输入签名', trigger: 'blur' },
+                        { min: 2,  message: '不可少于2个字符', trigger: 'blur' }
+                    ],
+                    remark:[
+                        { required: true, message: '请输入签名', trigger: 'blur' },
+                        { min: 2,  message: '不可少于2个字符', trigger: 'blur' }
+                    ],
+                },
             }
         },
         methods:{
-            login(){
+            changeLabel:function(){
+                if(this.loginForm.labelName=="用户登录"){
+                    this.registerDgTitle="超市注册";
+                    this.loginForm.labelName="超市登录";
+                }else if(this.loginForm.labelName=="超市登录") {
+                    this.registerDgTitle = "用户注册";
+                    this.loginForm.labelName = "用户登录";
+                }
+            },
+            loginUser(){
                 this.loading=true;
                 var _this=this;
-                axios.get('http://'+window.location.host+'/login',
+                axios.get('http://'+window.location.host+'/loginUser',
                     {params:{username:_this.loginForm.username?_this.loginForm.username:null,
                             password:_this.loginForm.password?_this.loginForm.password:null,
                         }}).then(function (response) {
                     if(response.data.rtnFlag=="9999"){//请求成功
-                        //window.localStorage.setItem("username", response.data.rtnData.username)
-                        window.location.href = "shop.html?avatar="+response.data.rtnData.avatar+"&id="+response.data.rtnData.id;
-                        console.log(response.data.rtnData);
+                        _this.$message('登陆成功！');
+                        if(response.data.rtnData.type=="user")
+                            window.location.href = "index.html?avatar="+response.data.rtnData.avatar+"&id="+response.data.rtnData.id;
+                        else if(response.data.rtnData.type=="admin")
+                            window.location.href ="manage.html";
                     }else if(response.data.rtnFlag=="1001"){//未登录
                         // _this.loginDgVisible=true;
                     }else{
-
-                        /*
                         _this.$bdmsg({
                             type:"toast",
                             msgType:"error",
-                            message: '查询失败！'+response.data.rtnMsg
+                            message: '登陆失败！'+response.data.rtnMsg
                         });
-                        */
                     }
                     _this.loading=false;
                 }).catch(function (error) {
@@ -97,8 +242,128 @@
                     // always executed
                 });
             },
+
+            loginShop(){
+                this.loading=true;
+                var _this=this;
+                axios.get('http://'+window.location.host+'/loginShop',
+                    {params:{username:_this.loginForm.username?_this.loginForm.username:null,
+                            password:_this.loginForm.password?_this.loginForm.password:null,
+                        }}).then(function (response) {
+                    if(response.data.rtnFlag=="9999"){//请求成功
+                        _this.$message('登陆成功！');
+                        window.location.href = "shop.html?picLink="+response.data.rtnData.picLink+"&id="+response.data.rtnData.id;
+                    }else if(response.data.rtnFlag=="1001"){//未登录
+                        // _this.loginDgVisible=true;
+                    }else{
+                        _this.$bdmsg({
+                            type:"toast",
+                            msgType:"error",
+                            message: '登陆失败！'+response.data.rtnMsg
+                        });
+                    }
+                    _this.loading=false;
+                }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            registerShop:function(formName){
+                var _this=this;
+                _this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        axios.post('http://'+window.location.host+'/registerShop',_this.registerForm)
+                            .then(function (response) {
+                                if(response.data.rtnFlag=="9999"){//请求成功
+                                    _this.$bdmsg({
+                                        type:"toast",
+                                        msgType:"success",
+                                        message: '注册成功！'
+                                    });
+                                    _this.registerDgVisible=false;
+                                    _this.$refs[formName].resetFields();
+                                    _this.$message('注册成功！请登录');
+                                }else if(response.data.rtnFlag=="1001"){//未登录
+                                    //_this.loginDgVisible=true;
+                                }else{
+                                    _this.$bdmsg({
+                                        type:"toast",
+                                        msgType:"error",
+                                        message: '注册失败！'+response.data.rtnMsg
+                                    });
+                                }
+                            }).catch(function (error) {
+                            // handle error
+                            console.log(error);
+                        }).then(function () {
+                            // always executed
+                        });
+                    } else {
+                        _this.$message({
+                            showClose: true,
+                            message: '注册信息有误！',
+                            type: 'error'
+                        });
+                        return false;
+                    }
+                });
+            },
+
+            registerUser:function(formName){
+                var _this=this;
+                _this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        axios.post('http://'+window.location.host+'/registerUser',_this.registerForm)
+                            .then(function (response) {
+                                if(response.data.rtnFlag=="9999"){//请求成功
+                                    _this.$bdmsg({
+                                        type:"toast",
+                                        msgType:"success",
+                                        message: '注册成功！'
+                                    });
+                                    _this.registerDgVisible=false;
+                                    _this.$refs[formName].resetFields();
+                                    _this.$message('注册成功！请登录');
+                                }else if(response.data.rtnFlag=="1001"){//未登录
+                                    //_this.loginDgVisible=true;
+                                }else{
+                                    _this.$bdmsg({
+                                        type:"toast",
+                                        msgType:"error",
+                                        message: '注册失败！'+response.data.rtnMsg
+                                    });
+                                }
+                            }).catch(function (error) {
+                            // handle error
+                            console.log(error);
+                        }).then(function () {
+                            // always executed
+                        });
+                    } else {
+                        _this.$message({
+                            showClose: true,
+                            message: '注册信息有误！',
+                            type: 'error'
+                        });
+                        return false;
+                    }
+                });
+
+            },
+
+            openRegisterDg:function(){
+                this.registerDgVisible=true;
+            },
+            dialogClose:function(formName){
+                this.$refs[formName].resetFields();
+                this.registerDgVisible=false;
+            },
         },
-        //mounted:{},
+        mounted:function () {
+        },
 
     });
 </script>

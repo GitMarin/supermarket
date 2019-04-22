@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.wrg.supermarket.component.MkplatWebModel;
 import com.wrg.supermarket.entity.User;
 
+import java.util.Map;
+
 /**
  * @ClassName ILoginService
  * @Description TODO
@@ -13,5 +15,15 @@ import com.wrg.supermarket.entity.User;
  **/
 public interface ILoginService extends IService<User> {
 
-    MkplatWebModel login(String username, String password);
+    MkplatWebModel loginUser(String username, String password);
+
+    MkplatWebModel loginShop(String username, String password);
+
+    MkplatWebModel registerUser(Map<String,Object> map);
+
+    MkplatWebModel registerShop(Map<String,Object> map);
+
+    MkplatWebModel testUsername(String username);
+
+    MkplatWebModel testShopName(String username);
 }

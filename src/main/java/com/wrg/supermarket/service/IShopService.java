@@ -1,5 +1,6 @@
 package com.wrg.supermarket.service;
 
+import com.wrg.supermarket.component.MkplatWebModel;
 import com.wrg.supermarket.entity.Shop;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -13,4 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IShopService extends IService<Shop> {
 
+    MkplatWebModel getShop(String id);
 }

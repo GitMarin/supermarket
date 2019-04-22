@@ -2,46 +2,49 @@ package com.wrg.supermarket.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 
-import javax.print.DocFlavor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * @ClassName Goods
+ * @ClassName ShopGoods
  * @Description TODO
  * @Author Wang Rengang
- * @Date 2019/3/27 19:57
+ * @Date 2019/4/12 16:21
  * @Version 1.0
  **/
-@TableName("goods")
-public class Goods implements Serializable {
+@TableName("shop_goods")
+public class ShopGoods implements Serializable {
     private static final long serialVersionUID = 1L;
-    private String id;
+    private String goodsId;
+    private String shopId;
     private BigDecimal price;
-    private String name;
-    private String typeId;
-    private String brandName;
+    private String depict;
     private String status;
-    //商品型号
-    private String marque;
-    private String condensePicLink;
     private Integer number;
     private Integer dealNumber;
     private Integer commentNumber;
     private Integer favoritesNumber;
-    private LocalDateTime modifyTime;
+    private LocalDateTime lastOnlineTime;
     private LocalDateTime lastCommentTime;
     private LocalDateTime lastFavoritesTime;
     private LocalDateTime lastDealTime;
     private LocalDateTime createTime;
 
-    public String getId() {
-        return id;
+    public String getGoodsId() {
+        return goodsId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setGoodsId(String goodsId) {
+        this.goodsId = goodsId;
+    }
+
+    public String getShopId() {
+        return shopId;
+    }
+
+    public void setShopId(String shopId) {
+        this.shopId = shopId;
     }
 
     public BigDecimal getPrice() {
@@ -52,44 +55,12 @@ public class Goods implements Serializable {
         this.price = price;
     }
 
-    public String getName() {
-        return name;
+    public Integer getDealNumber() {
+        return dealNumber;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getTypeId() {
-        return typeId;
-    }
-
-    public void setTypeId(String typeId) {
-        this.typeId = typeId;
-    }
-
-    public String getBrandName() {
-        return brandName;
-    }
-
-    public void setBrandName(String brandName) {
-        this.brandName = brandName;
-    }
-
-    public String getMarque() {
-        return marque;
-    }
-
-    public void setMarque(String marque) {
-        this.marque = marque;
-    }
-
-    public String getCondensePicLink() {
-        return condensePicLink;
-    }
-
-    public void setCondensePicLink(String condensePicLink) {
-        this.condensePicLink = condensePicLink;
+    public void setDealNumber(Integer dealNumber) {
+        this.dealNumber = dealNumber;
     }
 
     public Integer getCommentNumber() {
@@ -108,12 +79,12 @@ public class Goods implements Serializable {
         this.favoritesNumber = favoritesNumber;
     }
 
-    public LocalDateTime getModifyTime() {
-        return modifyTime;
+    public LocalDateTime getLastOnlineTime() {
+        return lastOnlineTime;
     }
 
-    public void setModifyTime(LocalDateTime modifyTime) {
-        this.modifyTime = modifyTime;
+    public void setLastOnlineTime(LocalDateTime lastOnlineTime) {
+        this.lastOnlineTime = lastOnlineTime;
     }
 
     public LocalDateTime getLastCommentTime() {
@@ -148,20 +119,12 @@ public class Goods implements Serializable {
         this.createTime = createTime;
     }
 
-    public Integer getDealNumber() {
-        return dealNumber;
+    public String getDepict() {
+        return depict;
     }
 
-    public void setDealNumber(Integer dealNumber) {
-        this.dealNumber = dealNumber;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
+    public void setDepict(String depict) {
+        this.depict = depict;
     }
 
     public Integer getNumber() {
@@ -170,5 +133,13 @@ public class Goods implements Serializable {
 
     public void setNumber(Integer number) {
         this.number = number;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

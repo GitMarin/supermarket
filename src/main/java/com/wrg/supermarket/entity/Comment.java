@@ -3,25 +3,26 @@ package com.wrg.supermarket.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * @ClassName Deal
+ * @ClassName Comment
  * @Description TODO
  * @Author Wang Rengang
- * @Date 2019/4/10 22:01
+ * @Date 2019/4/12 15:40
  * @Version 1.0
  **/
-@TableName("deal")
-public class Deal implements Serializable {
+@TableName("comment")
+public class Comment implements Serializable {
     private static final long serialVersionUID = 1L;
+
     private String id;
-    private String status;
     private String userId;
+    private String goodsId;
     private String shopId;
-    private BigDecimal dealPrice;
+    private String content;
     private LocalDateTime createTime;
+    private LocalDateTime modifyTime;
 
     public String getId() {
         return id;
@@ -29,14 +30,6 @@ public class Deal implements Serializable {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public String getUserId() {
@@ -47,6 +40,14 @@ public class Deal implements Serializable {
         this.userId = userId;
     }
 
+    public String getGoodsId() {
+        return goodsId;
+    }
+
+    public void setGoodsId(String goodsId) {
+        this.goodsId = goodsId;
+    }
+
     public String getShopId() {
         return shopId;
     }
@@ -55,12 +56,12 @@ public class Deal implements Serializable {
         this.shopId = shopId;
     }
 
-    public BigDecimal getDealPrice() {
-        return dealPrice;
+    public String getContent() {
+        return content;
     }
 
-    public void setDealPrice(BigDecimal dealPrice) {
-        this.dealPrice = dealPrice;
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public LocalDateTime getCreateTime() {
@@ -71,5 +72,11 @@ public class Deal implements Serializable {
         this.createTime = createTime;
     }
 
+    public LocalDateTime getModifyTime() {
+        return modifyTime;
+    }
 
+    public void setModifyTime(LocalDateTime modifyTime) {
+        this.modifyTime = modifyTime;
+    }
 }

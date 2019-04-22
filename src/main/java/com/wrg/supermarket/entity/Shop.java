@@ -2,6 +2,7 @@ package com.wrg.supermarket.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -43,6 +44,12 @@ public class Shop  implements Serializable {
     private String picLink;
 
     private String name;
+
+    private String username;
+    private String password;
+    private String remark;
+    private LocalDateTime registerTime;
+    private LocalDateTime lastAccessTime;
 
     public String getName() {
         return name;
@@ -102,7 +109,43 @@ public class Shop  implements Serializable {
         this.picLink = picLink;
     }
 
+    public String getUsername() {
+        return username;
+    }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
+    public String getPassword() {
+        return password;
+    }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public LocalDateTime getRegisterTime() {
+        return registerTime;
+    }
+
+    public void setRegisterTime(LocalDateTime registerTime) {
+        this.registerTime = registerTime;
+    }
+
+    public LocalDateTime getLastAccessTime() {
+        return lastAccessTime;
+    }
+
+    public void setLastAccessTime(LocalDateTime lastAccessTime) {
+        this.lastAccessTime = lastAccessTime;
+    }
 }
