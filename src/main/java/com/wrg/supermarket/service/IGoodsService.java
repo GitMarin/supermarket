@@ -10,7 +10,7 @@ public interface IGoodsService extends IService<Goods> {
 
     MkplatWebModel getGoodsPage(Map<String,Object> map);
 
-    MkplatWebModel getOneData(String id);
+    MkplatWebModel getOneGoods(String id);
 
     MkplatWebModel addGoods(Map<String,Object> map);
 

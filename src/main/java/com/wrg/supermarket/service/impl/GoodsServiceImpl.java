@@ -39,10 +39,11 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         QueryWrapper<Goods> queryWrapper=Wrappers.query();
         if(map.get("name")!=null)   queryWrapper.like("name",map.get("name").toString());
         //搜寻typeId的类型以及包含的商品类型，使用递归调用方法实现
-        if(map.get("typeId")!=null) queryTypeId(map.get("typeId").toString(),queryWrapper);
-        //根据不同用户，选择提供不同状态的商品信息
         if(!map.get("status").toString().equals("all")) queryWrapper.eq("status",map.get("status").toString());
         //分页处理
+        if(map.get("typeId")!=null) queryTypeId(map.get("typeId").toString(),queryWrapper);
+        //根据不同用户，选择提供不同状态的商品信息
+
         IPage<Goods> pageData=page(new com.baomidou.mybatisplus.extension.plugins.pagination.Page<Goods>(current,size),queryWrapper);
         //处理查询后数据
         List<Goods> pageList=pageData.getRecords();
@@ -69,9 +70,11 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
     }
 
     @Override
-    public MkplatWebModel getOneData(String id){
-        Goods Data = getById(id);
-        return MkplatWebModel.convertMetroPayWebModel(Data);
+    public MkplatWebModel getOneGoods(String id){
+        Goods goods = getById(id);
+        Map<String,Object> map = JavaBeanUtil.transBean2Map(goods);
+        map.put("typeName",goodsTypeMapper.selectById(goods.getTypeId()).getName());
+        return MkplatWebModel.convertMetroPayWebModel(map);
     }
 
     @Override

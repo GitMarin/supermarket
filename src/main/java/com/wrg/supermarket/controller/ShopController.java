@@ -4,11 +4,9 @@ package com.wrg.supermarket.controller;
 import com.wrg.supermarket.component.MkplatWebModel;
 import com.wrg.supermarket.service.IShopService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import java.util.Map;
 
 /**
  * <p>
@@ -26,8 +24,14 @@ public class ShopController  {
     private IShopService iShopService;
     @ResponseBody
     @RequestMapping("/getShop")
-    public MkplatWebModel getUserData(@RequestParam("id")String id){
-        return iShopService.getShop(id);
+    public MkplatWebModel getOneShop(@RequestParam("id")String id){
+        return iShopService.getOneShop(id);
+    }
+
+    @ResponseBody
+    @RequestMapping("/getShopPage")
+    public MkplatWebModel getShopPage(@RequestBody Map<String,Object> map){
+        return iShopService.getShopPage(map);
     }
 }
 

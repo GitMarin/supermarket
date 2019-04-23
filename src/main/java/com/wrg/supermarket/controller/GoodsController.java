@@ -31,9 +31,9 @@ public class GoodsController {
     }
 
     @ResponseBody
-    @RequestMapping("/getOneData")
-    public MkplatWebModel getOneData(@RequestParam("id")String id){
-        return service.getOneData(id);
+    @RequestMapping("/getOneGoods")
+    public MkplatWebModel getOneGoods(@RequestParam("id")String id){
+        return service.getOneGoods(id);
     }
 
     @ResponseBody

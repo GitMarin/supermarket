@@ -4,6 +4,8 @@ import com.wrg.supermarket.component.MkplatWebModel;
 import com.wrg.supermarket.entity.Shop;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.Map;
+
 /**
  * <p>
  *  服务类
@@ -14,5 +16,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IShopService extends IService<Shop> {
 
-    MkplatWebModel getShop(String id);
+    MkplatWebModel getOneShop(String id);
+
+    MkplatWebModel getShopPage(Map<String,Object> map);
 }

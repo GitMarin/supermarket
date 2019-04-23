@@ -46,17 +46,15 @@
                     </el-popover>
                 </el-col>
                 <el-col :span="14"><br>
-                    <el-form ref="searchForm" :inline="true" :model="searchForm" class="demo-form-inline" >
-                        <el-form-item>
-                            <el-input v-model="searchForm.name" autocomplete="off" clearable></el-input>
-                        </el-form-item>
-                        <el-form-item>
+
+                            <el-cascader expand-trigger="hover" :options="options"  placeholder="请选择类型" :clearable="true"
+                                         :change-on-select="true" :show-all-levels="false" @change="handleChange">
+                            </el-cascader>
+
+                            <el-input v-model="searchName" placeholder="请输入商品名" style="width: 180px"></el-input>
+
                             <el-button type="primary" @click="search">搜索</el-button>
-                        </el-form-item>
-                        <!--商品和店铺选项-->
-                        <!--<el-tabs @tab-click="handleTabClick">-->
-                        <!--<el-tab-pane label="" name="all"></el-tab-pane>-->
-                        <!--</el-tabs>-->
+
                     </el-form>
                 </el-col>
             </el-row>
@@ -68,9 +66,9 @@
                     <ul>
                         <li v-for="v in cardData">
                             <img v-bind:src="v.condensePicLink" alt="v.name" @click="goodsClick(v.id)">
-                            <h4>{{v.name}}</h4>
-                            <p>{{v.depict}}</p>
-                            <p>评论量：{{v.commentNumber}}   ￥{{v.price}}元</p>
+                            <p>{{v.name}}</p>
+                            <p>{{v.brandName}} &nbsp;&nbsp;{{v.marque}}</p>
+                            <p>存货:{{v.number}}&nbsp;&nbsp;￥{{v.price}}元</p>
                         </li>
                     </ul>
                 </div>
@@ -78,12 +76,12 @@
                     <br>
                     <el-pagination
                             :page-sizes="[6, 12, 24, 48]"
-                            :current-page="searchForm.current"
-                            :page-size.sync ="searchForm.size"
+                            :current-page="current"
+                            :page-size.sync ="size"
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
                             layout="total, sizes, prev, pager, next, jumper"
-                            :total="searchForm.total">
+                            :total="total">
                     </el-pagination>
                 </div>
             </el-card>
@@ -112,12 +110,13 @@
         data:function(){
             return{
                 cardData:[],
-                searchForm: {
-                    current:1,
-                    size:6,
-                    total:null,
-                    name:null,
-                },
+                current:1,
+                size:6,
+                total:null,
+                typeId:null,
+                searchName:null,
+
+                options:[],
                 userId:0,
                 id:null,
                 nickname:null,
@@ -129,7 +128,6 @@
         methods:{
             showUser(){
                 const _this=this;
-                console.log(_this.userId);
                 axios.get('http://'+window.location.host+'/user/getUserData',{params:{id:_this.userId}})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
@@ -168,11 +166,12 @@
             },
             initTable:function(){
                 const _this=this;
-                axios.post('http://'+window.location.host+'/goods/getGoodsPage',_this.searchForm)
+                axios.post('http://'+window.location.host+'/goods/getGoodsPage',{size:_this.size,
+                    current:_this.current,typeId:_this.typeId,name:_this.searchName,status:"enabled"})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.cardData=response.data.rtnData;
-                            _this.searchForm.total=response.data.total;
+                            _this.total=response.data.total;
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
@@ -190,12 +189,37 @@
                 });
             },
             handleSizeChange:function(val) {
-                this.searchForm.size=val;
+                this.size=val;
                 this.initTable();
             },
             handleCurrentChange:function(val) {
-                this.searchForm.current=val;
+                this.current=val;
                 this.initTable();
+            },
+            handleChange(value){
+                this.typeId=value[value.length-1];
+            },
+            getParentGoodsType:function(){
+                const _this=this;
+                axios.get('http://'+window.location.host+'/goodsType/getParentGoodsType')
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.options=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: "获取上级类型数据"+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
             },
         },
         mounted: function() {
@@ -204,8 +228,9 @@
             var row =  url.split("?")[1].split("&");
             _this.avatar=row[0].split("=")[1];
             _this.userId=row[1].split("=")[1];
-            this.initTable();
-            this.showUser();
+            _this.getParentGoodsType();
+            _this.initTable();
+            _this.showUser();
         },
     });
 </script>

@@ -88,7 +88,7 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         Map<String,Object> resultMap=new HashMap<>();
         resultMap.put("dataList",resultList);
         //放入tab的数据
-        resultMap.put("dataStatistics",dataStatistics());
+        resultMap.put("dataStatistics",dataStatistics(map.get("shopId").toString()));
         return MkplatWebModel.convertMetroPayWebModel(pageData.getTotal(),resultMap);
     }
 
@@ -179,29 +179,31 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
      * @Param
      * @return
      **/
-    private Map<String,Integer>  dataStatistics(){
+    private Map<String,Integer>  dataStatistics(String id){
         Map<String,Integer> dataStatisticsMap=new HashMap<>();
         //全部数据统计
-        int all=count();
+        QueryWrapper<ShopGoods> queryWrapper= Wrappers.query();
+        queryWrapper.eq("shop_id",id);
+        int all=count(queryWrapper);
         dataStatisticsMap.put("all",all);
         //售罄数据统计 soldOut
         QueryWrapper<ShopGoods> queryWrapper1= Wrappers.query();
-        queryWrapper1.eq("status","soldOut");
+        queryWrapper1.eq("status","soldOut").eq("shop_id",id);
         int soldOut=count(queryWrapper1);
         dataStatisticsMap.put("soldOut",soldOut);
         //上架数据统计 online
         QueryWrapper<ShopGoods> queryWrapper2= Wrappers.query();
-        queryWrapper2.eq("status","online");
+        queryWrapper2.eq("status","online").eq("shop_id",id);
         int online=count(queryWrapper2);
         dataStatisticsMap.put("online",online);
         //下架数据统计 offline
         QueryWrapper<ShopGoods> queryWrapper3= Wrappers.query();
-        queryWrapper3.eq("status","offline");
+        queryWrapper3.eq("status","offline").eq("shop_id",id);
         int offline=count(queryWrapper3);
         dataStatisticsMap.put("offline",offline);
         //准备中数据统计 prepared
         QueryWrapper<ShopGoods> queryWrapper4= Wrappers.query();
-        queryWrapper4.eq("status","prepared");
+        queryWrapper4.eq("status","prepared").eq("shop_id",id);
         int prepared=count(queryWrapper4);
         dataStatisticsMap.put("prepared",prepared);
         return dataStatisticsMap;
