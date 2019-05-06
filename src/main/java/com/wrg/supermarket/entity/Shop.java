@@ -45,6 +45,8 @@ public class Shop  implements Serializable {
 
     private String name;
 
+    private String status;
+
     private String username;
     private String password;
     private String remark;
@@ -147,5 +149,13 @@ public class Shop  implements Serializable {
 
     public void setLastAccessTime(LocalDateTime lastAccessTime) {
         this.lastAccessTime = lastAccessTime;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

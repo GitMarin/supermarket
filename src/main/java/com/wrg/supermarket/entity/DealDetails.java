@@ -20,7 +20,7 @@ public class DealDetails implements Serializable {
     private String goodsId;
     private Integer goodsNumber;
     private BigDecimal goodsPrice;
-    private String commentId;
+
 
     public String getId() {
         return id;
@@ -52,13 +52,5 @@ public class DealDetails implements Serializable {
 
     public void setGoodsPrice(BigDecimal goodsPrice) {
         this.goodsPrice = goodsPrice;
-    }
-
-    public String getCommentId() {
-        return commentId;
-    }
-
-    public void setCommentId(String commentId) {
-        this.commentId = commentId;
     }
 }

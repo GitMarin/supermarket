@@ -28,37 +28,37 @@
 <body>
 <div id="index">
     <el-container>
-        <el-header height="80px">
-            <!--存放头像等信息-->
-            <el-row>
-                <el-col :span="10">
-                    <label>用户{{userId}}</label><br>
+        <el-header  style="background-color: #b3d7ff">
+            <el-row height="70px">
+                <el-col :span="4">
+                    <img src="img/logo.png" style="width: 50px;height: 50px;" alt="logo" @click="logoClick">
+                </el-col>
+                <el-col :span="10" style="margin-top: 10px">
+                    <el-cascader expand-trigger="hover" :options="options"  placeholder="请选择类型" :clearable="true"
+                                         :change-on-select="true" :show-all-levels="false" @change="topHandleChange">
+                    </el-cascader>
+                    <el-input v-model="searchName" placeholder="请输入商品名" style="width: 180px"></el-input>
+                    <el-button type="primary" @click="search">搜索</el-button>
+                </el-col>
+                <el-col :span="7">
+                    <el-badge :value="shoppingCartNumber" class="item" style="float: right;margin-top: 10px">
+                        <img src="img/shoppingCart.png" style="width: 40px;height: 40px;" @click="goShoppingCart">
+                    </el-badge>
+                </el-col>
+                <!--存放头像等信息-->
+
+                <el-col :span="3">
                     <el-popover
                             placement="right-start"
                             width="200"
                             trigger="hover">
-                        <el-card class="box-card">
-                            <label>账号：{{id}}</label><br>
+                            <label>账号：{{userId}}</label><br>
                             <label>昵称：{{nickname}}</label><br>
-                            <label>评论：{{remark}}</label>
-                        </el-card>
-                        <img :src="avatar" width="60px" height="60px" alt="用户头像" slot="reference" @click="avatarClick(id)">
+                            <label>签名：{{sign}}</label>
+                        <img :src="avatar" style="border-radius: 20px;width: 60px;height: 60px;float: right" alt="用户头像" slot="reference" @click="avatarClick">
                     </el-popover>
                 </el-col>
-                <el-col :span="14"><br>
-
-                            <el-cascader expand-trigger="hover" :options="options"  placeholder="请选择类型" :clearable="true"
-                                         :change-on-select="true" :show-all-levels="false" @change="handleChange">
-                            </el-cascader>
-
-                            <el-input v-model="searchName" placeholder="请输入商品名" style="width: 180px"></el-input>
-
-                            <el-button type="primary" @click="search">搜索</el-button>
-
-                    </el-form>
-                </el-col>
             </el-row>
-
         </el-header>
         <el-main>
             <el-card>
@@ -109,19 +109,23 @@
         el:"#index",
         data:function(){
             return{
+                userId:0,
+                nickname:null,
+                sign:null,
+                avatar:null,
+                shoppingCartNumber:0,
+
+                searchName:null,
+                typeId:null,
+                options:[],
                 cardData:[],
                 current:1,
                 size:6,
                 total:null,
-                typeId:null,
-                searchName:null,
 
-                options:[],
-                userId:0,
-                id:null,
-                nickname:null,
-                remark:null,
-                avatar:null,
+
+
+
             }
 
         },
@@ -132,8 +136,8 @@
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.nickname=response.data.rtnData.nickname;
-                            _this.id=response.data.rtnData.id;
-                            _this.remark=response.data.rtnData.remark;
+                            _this.sign=response.data.rtnData.sign;
+                            _this.avatar=response.data.rtnData.avatar;
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
@@ -149,25 +153,75 @@
                 }).then(function () {
                     // always executed
                 });
+            },
+            logoClick:function(){
+                window.location.href = "index.html?id="+this.userId;
+            },
+            avatarClick(){
+                window.location.href = "information.html?id="+this.userId;
+            },
+            getShoppingCartCount:function(){
+                const _this=this;
+                axios.get('http://'+window.location.host+'/shoppingCart/getShoppingCartCount',{params:{id:_this.userId}})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.shoppingCartNumber=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: msg+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            goShoppingCart:function(){
+                window.location.href = "shoppingCart.html?id="+this.userId;
+            },
 
-            },
-            avatarMouseOver(userId){
-                console.log(userId);
-            },
 
-            goodsClick(id){
-                window.location.href = "details.html?id="+id;
-            },
-            avatarClick(id){
-                window.location.href = "information.html?id="+id;
-            },
             search(){
                 this.initTable();
+            },
+            topHandleChange(value){
+                this.typeId=value[value.length-1];
+            },
+            getParentGoodsType:function(){
+                const _this=this;
+                axios.get('http://'+window.location.host+'/goodsType/getParentGoodsType')
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.options=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: "获取上级类型数据"+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            goodsClick(id){
+                window.location.href = "details.html?goodsId="+id+"&userId="+this.userId;
             },
             initTable:function(){
                 const _this=this;
                 axios.post('http://'+window.location.host+'/goods/getGoodsPage',{size:_this.size,
-                    current:_this.current,typeId:_this.typeId,name:_this.searchName,status:"enabled"})
+                    current:_this.current,typeId:_this.typeId,name:_this.searchName,status:"enabled",number:1})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.cardData=response.data.rtnData;
@@ -196,41 +250,17 @@
                 this.current=val;
                 this.initTable();
             },
-            handleChange(value){
-                this.typeId=value[value.length-1];
-            },
-            getParentGoodsType:function(){
-                const _this=this;
-                axios.get('http://'+window.location.host+'/goodsType/getParentGoodsType')
-                    .then(function (response) {
-                        if(response.data.rtnFlag=="9999"){//请求成功
-                            _this.options=response.data.rtnData;
-                        }else if(response.data.rtnFlag=="1001"){//未登录
-                            //_this.loginDgVisible=true;
-                        }else{
-                            _this.$bdmsg({
-                                type:"toast",
-                                msgType:"error",
-                                message: "获取上级类型数据"+'失败！'+response.data.rtnMsg
-                            });
-                        }
-                    }).catch(function (error) {
-                    // handle error
-                    console.log(error);
-                }).then(function () {
-                    // always executed
-                });
-            },
+
+
         },
         mounted: function() {
             const _this=this;
             var url = window.location.href;
-            var row =  url.split("?")[1].split("&");
-            _this.avatar=row[0].split("=")[1];
-            _this.userId=row[1].split("=")[1];
+            _this.userId = url.split("?")[1].split("=")[1];
             _this.getParentGoodsType();
             _this.initTable();
             _this.showUser();
+            _this.getShoppingCartCount();
         },
     });
 </script>

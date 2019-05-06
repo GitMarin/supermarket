@@ -23,7 +23,7 @@ public class ShopController  {
     @Autowired
     private IShopService iShopService;
     @ResponseBody
-    @RequestMapping("/getShop")
+    @RequestMapping("/getOneShop")
     public MkplatWebModel getOneShop(@RequestParam("id")String id){
         return iShopService.getOneShop(id);
     }
@@ -33,5 +33,14 @@ public class ShopController  {
     public MkplatWebModel getShopPage(@RequestBody Map<String,Object> map){
         return iShopService.getShopPage(map);
     }
+
+
+    @ResponseBody
+    @RequestMapping("/modifyShop")
+    public MkplatWebModel modifyShop(@RequestBody Map<String,Object> map){
+        return iShopService.modifyShopStatus(map);
+    }
+
+
 }
 

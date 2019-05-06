@@ -19,10 +19,11 @@ public class MyMvcConfig extends WebMvcConfigurationSupport {
     protected void addInterceptors(InterceptorRegistry registry) {
         //super.addInterceptors(registry);
         registry.addInterceptor(new LoginHandlerInterceptor()).addPathPatterns("/**")
-                .excludePathPatterns("/login.html","/","/login",
-                        "/js/vue.js","/js/index.js","/js/axios.min.js","/js/index.js",
-                        "/js/vuescroll.js","/js/vuescroll-native.js","/js/vuescroll-slide.js",
-                        "/styles/bootstrap.min..css","/styles/index.css","/styles/vuescroll.css");
+                .excludePathPatterns("/login.html","/","/login");
+//        ,
+//        "/js/vue.js","/js/index.js","/js/axios.min.js","/js/index.js",
+//                "/js/vuescroll.js","/js/vuescroll-native.js","/js/vuescroll-slide.js",
+//                "/styles/bootstrap.min.css","/styles/index.css","/styles/vuescroll.css"
     }
 
     @Override
@@ -35,6 +36,9 @@ public class MyMvcConfig extends WebMvcConfigurationSupport {
         registry.addViewController("/information.html").setViewName("information");
         registry.addViewController("/index.html").setViewName("index");
         registry.addViewController("/manage.html").setViewName("manage");
+        registry.addViewController("/shopDetails.html").setViewName("shopDetails");
+        registry.addViewController("/buy.html").setViewName("buy");
+        registry.addViewController("/shoppingCart.html").setViewName("shoppingCart");
 
 
     }

@@ -22,6 +22,7 @@ public class Deal implements Serializable {
     private String shopId;
     private BigDecimal dealPrice;
     private LocalDateTime createTime;
+    private String commentId;
 
     public String getId() {
         return id;
@@ -71,5 +72,11 @@ public class Deal implements Serializable {
         this.createTime = createTime;
     }
 
+    public String getCommentId() {
+        return commentId;
+    }
 
+    public void setCommentId(String commentId) {
+        this.commentId = commentId;
+    }
 }

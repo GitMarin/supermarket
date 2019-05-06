@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>购物车</title>
+    <link rel="stylesheet" type="text/css" href="styles/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="styles/index.css">
+    <link rel="stylesheet" type="text/css" href="styles/vuescroll.css">
+    <script src="js/vue.js"></script>
+    <script src="js/index.js"></script>
+    <script src="js/axios.min.js"></script>
+    <script src="js/vuescroll-native.js"></script>
+    <script src="js/vuescroll-slide.js"></script>
+    <script src="js/vuescroll.js"></script>
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/msg.js"></script>
+</head>
+<body>
+<div id="shoppingCart">
+    <el-container>
+        <el-header  style="background-color: #b3d7ff">
+            <el-row height="70px">
+                <el-col :span="14">
+                    <img src="img/logo.png" style="width: 50px;height: 50px;" alt="logo" @click="logoClick">
+                </el-col>
+                <el-col :span="7">
+                    <el-badge :value="shoppingCartNumber" class="item" style="float: right;margin-top: 10px">
+                        <img src="img/shoppingCart.png" style="width: 40px;height: 40px;" @click="goShoppingCart">
+                    </el-badge>
+                </el-col>
+                <!--存放头像等信息-->
+
+                <el-col :span="3">
+                    <el-popover
+                            placement="right-start"
+                            width="200"
+                            trigger="hover">
+                        <label>账号：{{userId}}</label><br>
+                        <label>昵称：{{nickname}}</label><br>
+                        <label>签名：{{sign}}</label>
+                        <img :src="avatar" style="border-radius: 20px;width: 60px;height: 60px;float: right" alt="用户头像" slot="reference" @click="avatarClick">
+                    </el-popover>
+                </el-col>
+            </el-row>
+        </el-header>
+        <el-main>
+            <el-card style="width: 80%;margin: auto;min-width: 885px">
+                <el-table border empty-text=" " height="50px" style="width: 100%">
+                    <el-table-column label="宝贝" min-width="40%"></el-table-column>
+                    <el-table-column label="单价" min-width="15%"></el-table-column>
+                    <el-table-column label="数量" min-width="15%"></el-table-column>
+                    <el-table-column label="操作" min-width="30%"></el-table-column>
+                </el-table>
+
+                <div v-for="(t,index) in tableData"  style="width: 100%">
+                    <el-card>
+                        <el-row style="height: 40px">
+                            <el-col :span="5"><el-button type="text" style="width: 30%" @click="goShopDetails(t.shopId)">{{t.shopName}}</el-button></el-col>
+                        </el-row>
+
+                        <el-table :data="t.cardData" style="width: 100%" :show-header="false" @select="handleSelectionChange($event,index)">
+
+                            <el-table-column type="selection" min-width="3%"></el-table-column>
+                            <el-table-column prop="goodsName" label="宝贝" min-width="37%">
+                                <template slot-scope="scope">
+                                    <el-button type="text" style="width: 30%" @click="goGoods(scope.row.goodsId)">{{scope.row.goodsName}}</el-button>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="价格" min-width="15%">
+                                <template slot-scope="scope">
+                                    ￥<span style="font-size: 20px">{{scope.row.price}}</span>元&nbsp;
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="数量" min-width="15%">
+                                <template slot-scope="scope">
+                                    <el-input-number v-model="scope.row.num"  :min="1" :max="scope.row.number" size="mini" @change="handleNumberChange"></el-input-number>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" min-width="30%">
+                                <template slot-scope="scope">
+                                    <el-button-group>
+                                        <el-button  size="small" @click="confirmDelete(scope.row.shopId,scope.row.goodsId)">删除</el-button>
+                                    </el-button-group>
+                                </template>
+                            </el-table-column>
+
+                        </el-table>
+
+                    </el-card><br>
+                </div>
+            </el-card>
+        </el-main>
+        <el-footer >
+            <div style="float: right;"  v-if="this.dealPrice!='0'">
+                <label>总价￥<span style="font-size: 20px">{{dealPrice}}</span>元</label><br/>
+                <el-button type="primary" @click="openDeal">订购</el-button>
+            </div>
+        </el-footer>
+    </el-container>
+</div>
+
+</body>
+<script type="text/javascript">
+    new Vue({
+        el:"#shoppingCart",
+        data:function () {
+          return{
+              userId:0,
+              nickname:null,
+              sign:null,
+              avatar:null,
+              shoppingCartNumber:0,
+              tableData:{},
+              dealMap:new Map(),
+              dealPrice:0,
+
+
+          }
+        },
+        methods:{
+            showUser(){
+                const _this=this;
+                axios.get('http://'+window.location.host+'/user/getUserData',{params:{id:_this.userId}})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.nickname=response.data.rtnData.nickname;
+                            _this.sign=response.data.rtnData.sign;
+                            _this.avatar=response.data.rtnData.avatar;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: msg+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            logoClick:function(){
+                window.location.href = "index.html?id="+this.userId;
+            },
+            avatarClick(){
+                window.location.href = "information.html?id="+this.userId;
+            },
+            getShoppingCartCount:function(){
+                const _this=this;
+                axios.get('http://'+window.location.host+'/shoppingCart/getShoppingCartCount',{params:{id:_this.userId}})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.shoppingCartNumber=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: msg+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            goShoppingCart:function(){
+                window.location.href = "shoppingCart.html?id="+this.userId;
+            },
+
+            init:function () {
+                const _this=this;
+                axios.get('http://'+window.location.host+'/shoppingCart/getShoppingCartData',{params:{id:_this.userId}})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.tableData=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: msg+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            goShopDetails:function(shopId){
+                window.location.href = "shopDetails.html?shopId="+shopId+"&userId="+this.userId;
+            },
+            goGoods:function(goodsId){
+                window.location.href = "details.html?goodsId="+goodsId+"&userId="+this.userId;
+            },
+            handleSelectionChange:function (data,index) {
+                this.dealMap.set(index,data);
+                this.dealPrice=0;
+                var map = this.dealMap;
+                for(var i=0;i<map.size;i++){
+                    for(var j=0;j<map.get(i).length;j++){
+                        this.dealPrice+=map.get(i)[j].price * map.get(i)[j].num;
+                    }
+                }
+            },
+            confirmDelete:function(shopId,goodsId){
+                this.$confirm('此操作将删除该商品, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.deleteShoppingCart(shopId,goodsId);
+                    this.$message({
+                        type: 'success',
+                        message: '删除成功!'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
+            deleteShoppingCart:function(shopId,goodsId){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shoppingCart/deleteShoppingCart',{userId:_this.userId,
+                    shopId:shopId,goodsId:goodsId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.init();
+                            _this.getShoppingCartCount();
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '删除信息'+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            handleNumberChange:function () {
+                this.dealPrice=0;
+                var map = this.dealMap;
+                for(var i=0;i<map.size;i++){
+                    for(var j=0;j<map.get(i).length;j++){
+                        this.dealPrice+=map.get(i)[j].price * map.get(i)[j].num;
+                    }
+                }
+            },
+            openDeal:function () {
+                this.$confirm('确认订购?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.newDeal();
+                    this.$message({
+                        type: 'success',
+                        message: '订购成功!请到个人页面完成付款'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消订购'
+                    });
+                });
+            },
+            newDeal:function () {
+                const _this=this;
+                var list=new Array();
+                for(var i=0;i<_this.dealMap.size;i++){
+                    list[i]=_this.dealMap.get(i);
+                }
+                axios.post('http://'+window.location.host+'/deal/addDealBatch',{data:list,userId:_this.userId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.init();
+                            _this.getShoppingCartCount();
+                            _this.dealPrice=0;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '订购'+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+        },
+        mounted: function() {
+            const _this=this;
+            var url = window.location.href;
+            _this.userId = url.split("?")[1].split("=")[1];
+            _this.showUser();
+            _this.getShoppingCartCount();
+            _this.init();
+
+        },
+    });
+</script>
+</html>

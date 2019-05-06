@@ -17,4 +17,8 @@ public interface IShopGoodsService extends IService<ShopGoods> {
     MkplatWebModel onlineShopGoods(Map<String,Object> map);
 
     MkplatWebModel offlineShopGoods(Map<String,Object> map);
+
+    MkplatWebModel getOneShopGoods(Map<String,Object> map);
+
+    MkplatWebModel modifyShopGoodsStatus(Map<String,Object> map);
 }

@@ -22,4 +22,13 @@ public interface IDealService extends IService<Deal> {
      * @return com.wrg.supermarket.component.MkplatWebModel
      **/
     MkplatWebModel getDealPage(Map<String,Object> map);
+
+    MkplatWebModel addDeal(Map<String,Object> map);
+
+    MkplatWebModel changeDealStatus(Map<String,Object> map);
+
+    MkplatWebModel deleteDeal(String dealId);
+
+    MkplatWebModel addDealBatch(Map<String,Object> map);
+
 }

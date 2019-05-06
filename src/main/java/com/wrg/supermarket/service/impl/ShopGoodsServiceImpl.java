@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wrg.supermarket.component.JavaBeanUtil;
 import com.wrg.supermarket.component.MkplatWebModel;
 import com.wrg.supermarket.entity.Goods;
 import com.wrg.supermarket.entity.GoodsType;
@@ -12,6 +13,7 @@ import com.wrg.supermarket.entity.ShopGoods;
 import com.wrg.supermarket.mapper.GoodsMapper;
 import com.wrg.supermarket.mapper.GoodsTypeMapper;
 import com.wrg.supermarket.mapper.ShopGoodsMapper;
+import com.wrg.supermarket.mapper.ShopMapper;
 import com.wrg.supermarket.service.IShopGoodsService;
 import com.wrg.supermarket.utils.enums.PlatErrorCode;
 import com.wrg.supermarket.utils.exception.MkplatException;
@@ -38,23 +40,28 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
     private GoodsMapper goodsMapper;
     @Autowired
     private GoodsTypeMapper goodsTypeMapper;
+    @Autowired
+    private ShopMapper shopMapper;
     @Override
     public MkplatWebModel getShopGoodsPage(Map<String,Object> map){
         int current=Integer.parseInt(map.get("current").toString());
         int size=Integer.parseInt(map.get("size").toString());
         QueryWrapper<ShopGoods> queryWrapper= Wrappers.query();
-
-        if(map.get("name")!=null) queryWrapper.like("name",map.get("name"));
-        if(map.get("status")!=null) queryWrapper.like("status",map.get("status"));
+        if(map.get("status")!=null) queryWrapper.eq("status",map.get("status"));
         queryWrapper.eq("shop_id",map.get("shopId"));
 
-        if(map.get("typeId")!=null) {
-            QueryWrapper<Goods> goodsQueryWrapper= Wrappers.query();
-            queryTypeId(map.get("typeId").toString(),goodsQueryWrapper);
-            List<Goods> goods = goodsMapper.selectList(goodsQueryWrapper);
-            for(int i= 0;i<goods.size();i++){
-                queryWrapper.eq("goods_id",goods.get(i).getId()).or();
-            }
+
+        //用于存放商品信息的数组
+        List<Map<String,Object>> resultList=new ArrayList<>();
+
+        //查询商品名和商品类型 从goods表中 获取goodsId
+        QueryWrapper<Goods> goodsQueryWrapper= Wrappers.query();
+        if(map.get("name")!=null) goodsQueryWrapper.like("name",map.get("name"));
+        if(map.get("typeId")!=null) goodsQueryWrapper.and(i -> getQuery(map.get("typeId").toString(),i));
+        if(map.get("name")!=null || map.get("typeId")!=null) {
+            List<Goods> goodsList = goodsMapper.selectList(goodsQueryWrapper);
+            if(goodsList.size()==0) return MkplatWebModel.convertMetroPayWebModel((long) 0,resultList);
+            for (int i = 0; i < goodsList.size(); i++) queryWrapper.eq("goods_id", goodsList.get(i).getId()).or();
         }
 
         //分页处理
@@ -62,8 +69,7 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         //处理查询后数据
         List<ShopGoods> pageList=pageData.getRecords();
 
-        //用于存放商品信息的数组
-        List<Map<String,Object>> resultList=new ArrayList<>();
+
         for(int i=0;i<pageList.size();i++) {
             //用于存放一条商品信息
             Map<String, Object> resultMap = new HashMap<>(1);
@@ -74,6 +80,7 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
             resultMap.put("brandName",goods.getBrandName());
             resultMap.put("marque",goods.getMarque());
             resultMap.put("goodsId",goods.getId());
+            resultMap.put("condensePicLink",goods.getCondensePicLink());
 
             resultMap.put("typeName",goodsTypeMapper.selectById(goods.getTypeId()).getName());
 
@@ -137,6 +144,7 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         return MkplatWebModel.success();
     }
 
+    @Override
     public MkplatWebModel onlineShopGoods(Map<String,Object> map){
         //上架商品数量不能小于等于0
         if((Integer) map.get("number")<=0) return MkplatWebModel.convertMetroPayWebModel(new MkplatException(PlatErrorCode.PARAM_INVAILD));
@@ -158,6 +166,7 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         return MkplatWebModel.success();
     }
 
+    @Override
     public MkplatWebModel offlineShopGoods(Map<String,Object> map){
         String goodsId = map.get("goodsId").toString();
         String shopId = map.get("shopId").toString();
@@ -170,6 +179,35 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         int number = goods.getNumber()-(Integer) map.get("number");
         goods.setNumber(number);
         goodsMapper.updateById(goods);
+        return MkplatWebModel.success();
+    }
+
+    public MkplatWebModel getOneShopGoods(Map<String,Object> map){
+        String goodsId = map.get("goodsId").toString();
+        String shopId = map.get("shopId").toString();
+        QueryWrapper<ShopGoods> queryWrapper = Wrappers.query();
+        queryWrapper.eq("goods_id",goodsId).eq("shop_id",shopId);
+        ShopGoods shopGoods = getOne(queryWrapper);
+        if(shopGoods.getNumber()<=0) return MkplatWebModel.convertMetroPayWebModel(new MkplatException(PlatErrorCode.PARAM_INVAILD));
+        Map<String,Object> resultMap = JavaBeanUtil.transBean2Map(shopGoods);
+        Goods goods = goodsMapper.selectById(goodsId);
+        resultMap.put("goodsName",goods.getName());
+        resultMap.put("originalPrice",goods.getPrice());
+        resultMap.put("picLink",goods.getCondensePicLink());
+        resultMap.put("brandName",goods.getBrandName());
+        resultMap.put("marque",goods.getMarque());
+        resultMap.put("shopName",shopMapper.selectById(shopId).getName());
+        resultMap.put("typeName",goodsTypeMapper.selectById(goods.getTypeId()).getName());
+        resultMap.put("num",1);
+        return MkplatWebModel.convertMetroPayWebModel(resultMap);
+    }
+
+    public MkplatWebModel modifyShopGoodsStatus(Map<String,Object> map){
+        UpdateWrapper<ShopGoods> updateWrapper = Wrappers.update();
+        updateWrapper.eq("shop_id",map.get("shopId").toString())
+                .eq("goods_id",map.get("goodsId").toString())
+                .set("status",map.get("status").toString());
+        update(updateWrapper);
         return MkplatWebModel.success();
     }
     /**
@@ -210,6 +248,10 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
     }
 
 
+    private QueryWrapper<Goods> getQuery(String typeId,QueryWrapper<Goods> queryWrapper){
+        queryTypeId(typeId,queryWrapper);
+        return queryWrapper;
+    }
     private void queryTypeId(String typeId,QueryWrapper<Goods> queryWrapper){
         queryWrapper.eq("type_id",typeId).or();
         QueryWrapper<GoodsType> goodsTypeQueryWrapper=Wrappers.query();

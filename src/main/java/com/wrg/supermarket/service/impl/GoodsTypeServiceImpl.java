@@ -66,6 +66,7 @@ public class GoodsTypeServiceImpl extends ServiceImpl<GoodsTypeMapper, GoodsType
         Integer orderNumber=count(QueryWrapper)+1;
         //将map转换为实体
         GoodsType goodsType=new GoodsType();
+
         JavaBeanUtil.transMap2Bean(map,goodsType);
         //放入排列序号
         goodsType.setOrderNumber(orderNumber);

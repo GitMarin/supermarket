@@ -26,8 +26,8 @@
                     <el-menu-item-group>
                         <el-menu-item index="1">商品类型</el-menu-item>
                         <el-menu-item index="2">商品管理</el-menu-item>
-                        <el-menu-item index="3">选项3</el-menu-item>
-                        <el-menu-item index="4">选项4</el-menu-item>
+                        <el-menu-item index="3">超市管理</el-menu-item>
+                        <el-menu-item index="4">订单管理</el-menu-item>
                     </el-menu-item-group>
                 </el-menu>
             </el-aside>
@@ -205,6 +205,113 @@
                         </el-card>
                     </el-col>
                 </el-row>
+                <!----------------超市管理-------------------->
+                <el-row v-if="this.activeIndex=='3'">
+                    <el-col>
+                        <el-card>
+                            <span>超市列表</span>
+                            <div style="float: right;">
+                                <el-input v-model="shopName" placeholder="请输入" maxlength="10" show-word-limit style="width: 180px"></el-input>
+                                <el-button type="primary" @click="initShopTable">搜索</el-button>
+                            </div>
+                            <el-table :data="shopTableData" border height="450" size="mini" @expand-change="expandSelect" :row-key='getRowKeys' :expand-row-keys="expands">
+                                <el-table-column type="expand">
+                                    <el-card>
+                                        <template slot-scope="props">
+                                            <el-table :data="shopGoodsTableData" border max-height="400" size="mini">
+                                                <el-table-column prop="name" label="商品名" >
+                                                </el-table-column>
+                                                <el-table-column prop="typeName" label="类型" >
+                                                </el-table-column>
+                                                <el-table-column prop="brandName" label="品牌" >
+                                                </el-table-column>
+                                                <el-table-column prop="marque" label="型号" >
+                                                </el-table-column>
+                                                <el-table-column prop="depict" label="描述" >
+                                                </el-table-column>
+                                                <el-table-column prop="createTime" label="创建时间">
+                                                </el-table-column>
+                                                <el-table-column label="状态">
+                                                    <template slot-scope="scope" >
+                                                        <el-tag v-if="scope.row.status == 'online'">上架中</el-tag>
+                                                        <el-tag type="info" v-if="scope.row.status == 'offline'">已下架</el-tag>
+                                                        <el-tag type="danger" v-if="scope.row.status == 'soldOut'">售罄</el-tag>
+                                                        <el-tag type="success" v-if="scope.row.status == 'prepared'">准备中</el-tag>
+                                                        <el-tag type="danger" v-if="scope.row.status == 'disabled'">冻结</el-tag>
+                                                    </template>
+                                                </el-table-column>
+                                                <el-table-column label="价格" width="175">
+                                                    <template slot-scope="scope" >
+                                                        <label>原价：{{scope.row.price}}元</label>
+                                                        <label>现价：{{scope.row.currentPrice}}元</label>
+                                                    </template>
+                                                </el-table-column>
+                                                <el-table-column prop="number" label="数量" width="60">
+                                                </el-table-column>
+                                                <el-table-column prop="dealNumber" label="交易量" width="60">
+                                                </el-table-column>
+                                                <el-table-column label="操作">
+                                                    <template slot-scope="scope">
+                                                        <el-button-group>
+                                                            <el-button  @click="modifyShopGoodsStatus(scope.row.goodsId,'disabled')" v-if="scope.row.status == 'prepared' || scope.row.status == 'online'" size="small" type="danger">冻结</el-button>
+                                                            <el-button  @click="modifyShopGoodsStatus(scope.row.goodsId,'prepared')" v-if="scope.row.status == 'disabled'" size="small">解冻</el-button>
+                                                        </el-button-group>
+                                                    </template>
+                                                </el-table-column>
+                                            </el-table>
+                                            <el-pagination
+                                                    :page-sizes="[6, 12, 24, 48]"
+                                                    :current-page="shopGoodsCurrent"
+                                                    :page-size.sync ="shopGoodsSize"
+                                                    @size-change="handleShopGoodsSizeChange"
+                                                    @current-change="handleShopGoodsCurrentChange"
+                                                    layout="total, sizes, prev, pager, next, jumper"
+                                                    :total="shopGoodsTotal">
+                                            </el-pagination>
+                                        </template>
+                                    </el-card>
+                                </el-table-column>
+                                <el-table-column prop="name" label="超市名称" >
+                                </el-table-column>
+                                <el-table-column prop="remark" label="介绍" >
+                                </el-table-column>
+                                <el-table-column label="状态">
+                                    <template slot-scope="scope" >
+                                        <el-tag v-if="scope.row.status == 'enabled'">正常</el-tag>
+                                        <el-tag type="danger" v-if="scope.row.status == 'disabled'">冻结</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="address" label="地址" >
+                                </el-table-column>
+                                <el-table-column prop="goodsNumber" label="商品种类" >
+                                </el-table-column>
+                                <el-table-column prop="dealNumber" label="交易量" >
+                                </el-table-column>
+                                <el-table-column fixed="right" label="操作" width="100">
+                                    <template slot-scope="scope">
+                                        <el-button type="text" size="small" v-if="scope.row.status=='enabled'" @click="modifyShopStatus(scope.row.id,'disabled')">冻结</el-button>
+                                        <el-button type="text" size="small" v-if="scope.row.status=='disabled'" @click="modifyShopStatus(scope.row.id,'enabled')">解冻</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <el-pagination
+                                    :page-sizes="[6, 12, 18, 24]"
+                                    :current-page="shopCurrent"
+                                    :page-size ="shopSize"
+                                    @size-change="handleShopSizeChange"
+                                    @current-change="handleShopCurrentChange"
+                                    layout="total, sizes, prev, pager, next, jumper"
+                                    :total="shopTotal">
+                            </el-pagination>
+                        </el-card>
+                    </el-col>
+                </el-row>
+                <!----------------订单管理-------------------->
+                <el-row v-if="this.activeIndex=='4'">
+                    <el-col>
+                        <span>超市列表</span>
+                    </el-col>
+                </el-row>
             </el-main>
         </el-container>
     </el-container>
@@ -223,7 +330,7 @@
         el:"#manage",
         data:function(){
             return {
-                activeIndex:null,
+                activeIndex:"1",
                 //商品类型所用参数
                 tableData: [],
                 title:"新建类型",
@@ -264,6 +371,25 @@
                 },
                 goodsFormStyle:"display:none;",
                 goodsTitle:"新建商品",
+
+                //超市所用参数
+                shopTableData:[],
+                shopCurrent:1,
+                shopTotal:0,
+                shopSize:6,
+                shopName:null,
+
+                expands: [],
+                getRowKeys (row) {
+                    return row.id
+                },
+
+                //超市商品所用参数
+                shopId:null,
+                shopGoodsTableData:[],
+                shopGoodsCurrent:1,
+                shopGoodsSize:6,
+                shopGoodsTotal:0,
             }
         },
         methods:{
@@ -293,12 +419,13 @@
             handleSelect(key) {
                 this.activeIndex=key;
                 if(this.activeIndex=="1")   this.initTable();
-                if(this.activeIndex=="2")   this.initGoodsTable();
+                else if(this.activeIndex=="2")   this.initGoodsTable();
+                else if(this.activeIndex=="3")   this.initShopTable();
+
             },
             //商品类型
             initTable:function(){
                 const _this=this;
-                _this.loading=true;
                 axios.post('http://'+window.location.host+'/goodsType/getGoodsType',{size:_this.size,current:_this.current})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
@@ -371,7 +498,10 @@
             resetForm:function(formName){
                 const _this=this;
                 _this.$refs[formName].resetFields();
-                if(formName=="form") _this.title="新建类型";
+                if(formName=="form") {
+                    _this.title="新建类型";
+                    _this.id=null;
+                }
                 else if(formName=="goodsForm") _this.goodsTitle="新建商品";
             },
             openModify:function(goodsType){
@@ -382,7 +512,7 @@
             },
             //级联选择器
             handleChange:function(value){
-                this.pId=value[value.length-1];
+                this.form.pId=value[value.length-1];
             },
             handleSizeChange:function(val) {
                 this.size=val;
@@ -392,6 +522,7 @@
                 this.current=val;
                 this.initTable();
             },
+
             btnCk:function(event){
                 this.formStyle="display:block;"
             },
@@ -406,7 +537,7 @@
                 const _this=this;
                 _this.loading=true;
                 axios.post('http://'+window.location.host+'/goods/getGoodsPage',{size:_this.goodsSize,
-                    current:_this.goodsCurrent,typeId:_this.searchTypeId,name:_this.goodsSearchName,status:"all"})
+                    current:_this.goodsCurrent,typeId:_this.searchTypeId,name:_this.goodsSearchName,status:"all",number:0})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.goodsTableData=response.data.rtnData;
@@ -520,6 +651,134 @@
             goodsHandleCurrentChange:function(val){
                 this.goodsCurrent=val;
                 this.initGoodsTable();
+            },
+            //超市管理
+            initShopTable:function () {
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shop/getShopPage',{size:_this.shopSize,current:_this.shopCurrent,shopName:_this.shopName})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.shopTableData=response.data.rtnData;
+                            _this.shopTotal=response.data.total;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: "初始化类型数据"+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            handleShopSizeChange:function(val) {
+                this.shopSize=val;
+                this.initShopTable();
+            },
+            handleShopCurrentChange:function(val) {
+                this.shopCurrent=val;
+                this.initShopTable();
+            },
+
+            expandSelect:function (row, expandedRows) {
+                const _this = this;
+                _this.shopId=row.id;
+                if (expandedRows.length) {
+                    _this.expands = [];
+                    if (row) {
+                        _this.expands.push(row.id);
+                    }
+                    _this.initShopGoodsTable();
+                } else {
+                    _this.shopGoodsTableData=[];
+                    _this.expands = [];
+                }
+            },
+
+            handleShopGoodsSizeChange:function(val){
+                this.shopGoodsSize=val;
+                this.initShopGoodsTable();
+            },
+            handleShopGoodsCurrentChange:function(val){
+                this.shopGoodsCurrent=val;
+                this.initShopGoodsTable();
+            },
+
+            modifyShopGoodsStatus:function(id,status){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/modifyShopGoodsStatus',{goodsId:id,status:status,shopId:_this.shopId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.initShopGoodsTable();
+                            _this.$message('修改超市商品状态成功！');
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: "修改超市商品状态"+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            modifyShopStatus:function(id,status){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shop/modifyShop',{id:id,status:status})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.initShopTable();
+                            _this.$message('修改超市状态成功！');
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: "修改超市状态"+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            initShopGoodsTable:function () {
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/getShopGoodsPage',{form:{current:_this.shopGoodsCurrent,size:_this.shopGoodsSize},shopId:_this.shopId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.shopGoodsTableData=response.data.rtnData.dataList;
+                            _this.shopGoodsTotal=response.data.total;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: "获取超市商品信息"+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
             },
 
         },

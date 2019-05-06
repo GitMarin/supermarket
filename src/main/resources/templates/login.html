@@ -92,7 +92,6 @@
 <script src="js/vuescroll.js"></script>
 <script src="js/jquery-3.2.1.min.js"></script>
 <script src="js/msg.js"></script>
-<script src="js/vue-router.js"></script>
 <style type="text/css">
     .divForm{
         position: absolute;/*绝对定位*/
@@ -225,7 +224,7 @@
                     if(response.data.rtnFlag=="9999"){//请求成功
                         _this.$message('登陆成功！');
                         if(response.data.rtnData.type=="user")
-                            window.location.href = "index.html?avatar="+response.data.rtnData.avatar+"&id="+response.data.rtnData.id;
+                            window.location.href = "index.html?id="+response.data.rtnData.id;
                         else if(response.data.rtnData.type=="admin")
                             window.location.href ="manage.html";
                     }else if(response.data.rtnFlag=="1001"){//未登录

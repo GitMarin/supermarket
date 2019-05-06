@@ -1,7 +1,6 @@
 package com.wrg.supermarket.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.injector.methods.SelectById;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.wrg.supermarket.component.JavaBeanUtil;
@@ -42,6 +41,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         int current=Integer.parseInt(map.get("current").toString());
         int size=Integer.parseInt(map.get("size").toString());
         QueryWrapper<Shop> queryWrapper= Wrappers.query();
+        if(map.get("shopName")!=null) queryWrapper.like("name",map.get("shopName").toString());
         if( map.get("goodsId")!=null) {
             String goodsId = map.get("goodsId").toString();
             QueryWrapper<ShopGoods> shopGoodsQueryWrapper= Wrappers.query();
@@ -55,17 +55,28 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         //存放最后的结果
         List<Map<String,Object>> resultList=new ArrayList<>();
         for(int j=0;j<pageList.size();j++){
-            Map<String,Object> resultmap = JavaBeanUtil.transBean2Map(pageList.get(j));
+            Map<String,Object> resultMap = JavaBeanUtil.transBean2Map(pageList.get(j));
             if( map.get("goodsId")!=null){
                 String goodsId = map.get("goodsId").toString();
                 QueryWrapper<ShopGoods> shopGoodsQueryWrapper= Wrappers.query();
                 shopGoodsQueryWrapper.eq("goods_id",goodsId).eq("shop_id",pageList.get(j).getId());
                 ShopGoods shopGoods=shopGoodsMapper.selectOne(shopGoodsQueryWrapper);
-                resultmap.put("depict",shopGoods.getDepict());
-                resultmap.put("price",shopGoods.getPrice());
+                resultMap.put("depict",shopGoods.getDepict());
+                resultMap.put("price",shopGoods.getPrice());
+                resultMap.put("number",shopGoods.getNumber());
             }
-            resultList.add(resultmap);
+            resultList.add(resultMap);
         }
         return MkplatWebModel.convertMetroPayWebModel(pageData.getTotal(),resultList);
+    }
+
+
+    @Override
+    public MkplatWebModel modifyShopStatus(Map<String, Object> map){
+        Shop shop = new Shop();
+        shop.setId(map.get("id").toString());
+        shop.setStatus(map.get("status").toString());
+        updateById(shop);
+        return MkplatWebModel.success();
     }
 }

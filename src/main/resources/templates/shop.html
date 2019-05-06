@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml" style="height: 100%">
 <head>
     <meta charset="utf-8">
     <title>店铺信息</title>
@@ -24,107 +24,191 @@
     </style>
 
 </head>
-<body>
-<div id="shop" style="width: 100%">
-    <el-container>
-        <el-header>
+<body style="height: 100%">
+<div id="shop" style="height: 100%">
+    <el-container style="width: 100%;background-color: white;height: 100%">
+        <el-header style="background-color: #5bb2ff">
             <!--存放头像等信息-->
-            <el-row>
-                <el-col :span="10">
-                    <label>超市{{shopId}}</label><br>
+            <el-row height="70px">
+                <el-col :span="21">
+                    <label style="font-size: 25px;font-family: 仿宋;margin-top: 10px;font-weight: bold">超市管理</label>
+                </el-col>
+                <el-col :span="3">
                     <el-popover
-                            placement="right-start"
-                            width="200"
-                            trigger="hover">
-                        <el-card class="box-card">
-                            <label>账号：{{id}}</label><br>
-                            <label>名字：{{name}}</label><br>
-                            <label>简介：{{remark}}</label>
-                            <el-button>修改信息</el-button>
-                        </el-card>
-                        <img :src="picLink" width="60px" height="60px" alt="超市头像" slot="reference">
+                        placement="right-start"
+                        width="200"
+                        trigger="hover">
+
+                        <label>账号：{{id}}</label><br>
+                        <label>名字：{{name}}</label><br>
+                        <label>简介：{{remark}}</label>
+                        <el-button>修改信息</el-button>
+
+                        <img :src="picLink" style="border-radius: 20px;width: 60px;height: 60px;float: right" alt="超市头像" slot="reference">
                     </el-popover>
                 </el-col>
             </el-row>
         </el-header>
-        <el-main style="margin: 20px auto 0px;width: 90%;">
-            <el-form ref="form" :inline="true" :model="searchForm" label-width="80px" size="mini">
-                <el-tabs v-model="activeName" @tab-click="handleTabClick">
-                    <el-tab-pane :label="tabMap.all" name="all"></el-tab-pane>
-                    <el-tab-pane :label="tabMap.online" name="online"></el-tab-pane>
-                    <el-tab-pane :label="tabMap.offline" name="offline"></el-tab-pane>
-                    <el-tab-pane :label="tabMap.soldOut" name="soldOut"></el-tab-pane>
-                    <el-tab-pane :label="tabMap.prepared" name="prepared"></el-tab-pane>
-                </el-tabs>
-                <el-card  style="margin-top: -16px;height: 80px">
-                    <el-form-item label="商品名">
-                        <el-input v-model="searchForm.name" size="mini"></el-input>
-                    </el-form-item>
-                    <el-form-item label="商品类型" prop="typeId">
-                        <el-cascader expand-trigger="hover" :options="options"  placeholder="请选择类型" :clearable="true"
-                                     :change-on-select="true" :show-all-levels="false" @change="searchHandleChange">
-                        </el-cascader>
-                    </el-form-item>
-                    <el-form-item size="mini">
-                        <el-button type="primary" @click="search">查询</el-button>
-                    </el-form-item>
-                </el-card>
-            </el-form>
-            <el-card>
-                <el-button plain icon="el-icon-share" size="mini" style="float:right;margin-top: -6px" @click="openAddGoods">新建商品</el-button>
-                <el-table :data="tableData" border height="300" size="mini">
-                    <el-table-column prop="name" label="商品名" >
-                    </el-table-column>
-                    <el-table-column prop="typeName" label="类型" >
-                    </el-table-column>
-                    <el-table-column prop="brandName" label="品牌" >
-                    </el-table-column>
-                    <el-table-column prop="marque" label="型号" >
-                    </el-table-column>
-                    <el-table-column prop="depict" label="描述" >
-                    </el-table-column>
-                    <el-table-column prop="createTime" label="创建时间" width="180">
-                    </el-table-column>
-                    <el-table-column label="状态" width="80">
-                        <template slot-scope="scope" >
-                            <el-tag v-if="scope.row.status == 'online'">上架中</el-tag>
-                            <el-tag type="info" v-if="scope.row.status == 'offline'">已下架</el-tag>
-                            <el-tag type="danger" v-if="scope.row.status == 'soldOut'">售罄</el-tag>
-                            <el-tag type="success" v-if="scope.row.status == 'prepared'">准备中</el-tag>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="价格" width="180">
-                        <template slot-scope="scope" >
-                            <label>参考价：{{scope.row.price}}元</label>
-                            <label >现价：{{scope.row.currentPrice}}元</label>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="number" label="数量" width="80">
-                    </el-table-column>
-                    <el-table-column prop="dealNumber" label="交易量" width="80">
-                    </el-table-column>
-                    <el-table-column label="操作" width="180">
-                        <template slot-scope="scope">
-                            <el-button-group>
-                                <el-button  @click="openShopGoodsModify(scope.row)" v-if="scope.row.status != 'online'" size="small">修改</el-button>
-                                <el-button  @click="onlineShopGoods(scope.row)" v-if="scope.row.status == 'prepared'" size="small">上架</el-button>
-                                <el-button  @click="offlineShopGoods(scope.row)" v-if="scope.row.status == 'online'" size="small">下架</el-button>
-                            </el-button-group>
-                        </template>
-                    </el-table-column>
-                </el-table>
-                <el-pagination
-                        :page-sizes="[6, 12, 24, 48]"
-                        :current-page="searchForm.current"
-                        :page-size.sync ="searchForm.size"
-                        @size-change="handleSizeChange"
-                        @current-change="handleCurrentChange"
-                        layout="total, sizes, prev, pager, next, jumper"
-                        :total="searchForm.total">
-                </el-pagination>
-            </el-card>
-        </el-main>
+        <el-container style="height: 100%">
+            <el-aside style="width: 15%;height: 100%">
+                <el-menu
+                        style="height: 100%"
+                        :default-active="activeIndex"
+                        class="el-menu-vertical-demo"
+                        @select="handleSelect"
+                        background-color="#606266"
+                        text-color="#fff"
+                        active-text-color="#5bb2ff">
+                    <el-menu-item-group>
+                        <el-menu-item index="1">商品管理</el-menu-item>
+                        <el-menu-item index="2">订单管理</el-menu-item>
+                    </el-menu-item-group>
+                </el-menu>
+            </el-aside>
+            <el-main style="margin: 20px auto 0px;width: 90%;">
+                <div v-if="this.activeIndex=='1'">
+                    <el-form ref="searchForm" :inline="true" :model="searchForm" label-width="80px" size="mini">
+                        <el-tabs v-model="activeName" @tab-click="handleTabClick">
+                            <el-tab-pane :label="tabMap.all" name="all"></el-tab-pane>
+                            <el-tab-pane :label="tabMap.online" name="online"></el-tab-pane>
+                            <el-tab-pane :label="tabMap.offline" name="offline"></el-tab-pane>
+                            <el-tab-pane :label="tabMap.soldOut" name="soldOut"></el-tab-pane>
+                            <el-tab-pane :label="tabMap.prepared" name="prepared"></el-tab-pane>
+                        </el-tabs>
+                        <el-card  style="margin-top: -16px;height: 80px">
+                            <el-form-item label="商品名">
+                                <el-input v-model="searchForm.name" size="mini"></el-input>
+                            </el-form-item>
+                            <el-form-item label="商品类型" prop="typeId">
+                                <el-cascader expand-trigger="hover" :options="options"  placeholder="请选择类型" :clearable="true"
+                                             :change-on-select="true" :show-all-levels="false" @change="searchHandleChange">
+                                </el-cascader>
+                            </el-form-item>
+                            <el-form-item size="mini">
+                                <el-button type="primary" @click="search">查询</el-button>
+                            </el-form-item>
+                        </el-card>
+                    </el-form>
+                    <el-card>
+                        <el-button plain icon="el-icon-share" size="mini" style="float:right;margin-top: -6px" @click="openAddGoods">新建商品</el-button>
+                        <el-table :data="tableData" border height="300" size="mini">
+                            <el-table-column prop="name" label="商品名" >
+                            </el-table-column>
+                            <el-table-column prop="typeName" label="类型" >
+                            </el-table-column>
+                            <el-table-column prop="brandName" label="品牌" >
+                            </el-table-column>
+                            <el-table-column prop="marque" label="型号" >
+                            </el-table-column>
+                            <el-table-column prop="depict" label="描述" >
+                            </el-table-column>
+                            <el-table-column prop="createTime" label="创建时间" width="180">
+                            </el-table-column>
+                            <el-table-column label="状态" width="80">
+                                <template slot-scope="scope" >
+                                    <el-tag v-if="scope.row.status == 'online'">上架中</el-tag>
+                                    <el-tag type="info" v-if="scope.row.status == 'offline'">已下架</el-tag>
+                                    <el-tag type="danger" v-if="scope.row.status == 'soldOut'">售罄</el-tag>
+                                    <el-tag type="success" v-if="scope.row.status == 'prepared'">准备中</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="价格" width="180">
+                                <template slot-scope="scope" >
+                                    <label>参考价：{{scope.row.price}}元</label>
+                                    <label >现价：{{scope.row.currentPrice}}元</label>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="number" label="数量" width="80">
+                            </el-table-column>
+                            <el-table-column prop="dealNumber" label="交易量" width="80">
+                            </el-table-column>
+                            <el-table-column label="操作" width="180">
+                                <template slot-scope="scope">
+                                    <el-button-group>
+                                        <el-button  @click="openShopGoodsModify(scope.row)" v-if="scope.row.status != 'online'" size="small">修改</el-button>
+                                        <el-button  @click="onlineShopGoods(scope.row)" v-if="scope.row.status == 'prepared'" size="small">上架</el-button>
+                                        <el-button  @click="offlineShopGoods(scope.row)" v-if="scope.row.status == 'online'" size="small">下架</el-button>
+                                    </el-button-group>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <el-pagination
+                                :page-sizes="[6, 12, 24, 48]"
+                                :current-page="searchForm.current"
+                                :page-size.sync ="searchForm.size"
+                                @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange"
+                                layout="total, sizes, prev, pager, next, jumper"
+                                :total="searchForm.total">
+                        </el-pagination>
+                    </el-card>
+                </div>
+
+                <div v-if="this.activeIndex=='2'">
+                    <el-tabs v-model="activeDealName" @tab-click="handleDealTabClick">
+                        <el-tab-pane label="全部" name="all"></el-tab-pane>
+                        <el-tab-pane label="待付款" name="waitPay"></el-tab-pane>
+                        <el-tab-pane label="待发货" name="waitSend"></el-tab-pane>
+                        <el-tab-pane label="待收货" name="waitConfirm"></el-tab-pane>
+                        <el-tab-pane label="待评价" name="waitComment"></el-tab-pane>
+                        <el-tab-pane label="待退款" name="waitRefund"></el-tab-pane>
+                        <el-tab-pane label="完成" name="over"></el-tab-pane>
+                    </el-tabs>
+                    <el-table border empty-text=" " height="50px" style="width: 100%">
+                        <el-table-column label="宝贝" min-width="40%"></el-table-column>
+                        <el-table-column label="单价" min-width="15%"></el-table-column>
+                        <el-table-column label="数量" min-width="15%"></el-table-column>
+                        <el-table-column label="操作" min-width="30%"></el-table-column>
+                    </el-table>
+                    <div v-for="t in dealTableData" style="width: 100%">
+                        <el-card>
+                            <el-row>
+                                <el-col :span="5"><span>创建时间:{{t.createTime}}</span></el-col>
+                                <el-col :span="8"><span>交易单号:{{t.dealId}}</span></el-col>
+                                <el-col :span="3"><span>用户名:{{t.userName}}</span></el-col>
+                                <el-col :span="3">状态:
+                                    <el-tag v-if="t.status == 'waitPay'">待付款</el-tag>
+                                    <el-tag v-if="t.status == 'waitSend'">待发货</el-tag>
+                                    <el-tag v-if="t.status == 'waitConfirm'">待收货</el-tag>
+                                    <el-tag v-if="t.status == 'waitComment'">待评价</el-tag>
+                                    <el-tag v-if="t.status == 'waitRefund'">待退款</el-tag>
+                                    <el-tag v-if="t.status == 'over'">完成</el-tag>
+                                </el-col>
+                                <el-col :span="3">交易总额:￥<span style="font-size: 18px">{{t.dealPrice}}</span>元</el-col>
+                                <el-col :span="2">
+                                    <el-button-group>
+                                        <el-button size="small" v-if="t.status == 'waitSend'" type="primary">发货</el-button>
+                                    </el-button-group>
+                                </el-col>
+                            </el-row>
+                        </el-card>
+                        <el-card v-for="v in t.cardData" style="height: 55px">
+                            <el-row>
+                                <el-col :span="10"><span>{{v.goodsName}}</span></el-col>
+                                <el-col :span="4"><span>￥{{v.goodsPrice}}元</span></el-col>
+                                <el-col :span="3"><span>{{v.goodsNumber}}</span></el-col>
+                                <el-col :span="6">
+
+                                </el-col>
+                            </el-row>
+                        </el-card><br>
+                    </div>
+
+                    <el-pagination
+                            :page-sizes="[3, 6, 9, 15]"
+                            :current-page="current"
+                            :page-size="size"
+                            :total="total"
+                            @size-change="handleDealSizeChange"
+                            @current-change="handleDealCurrentChange"
+                            layout="total, sizes, prev, pager, next, jumper">
+                    </el-pagination>
+                </div>
+            </el-main>
+        </el-container>
     </el-container>
+
+
     <!--新建商品弹窗-->
     <el-dialog id="addDg" :title="addDgTitle" :visible.sync="addDgVisible"  width="550px">
         <el-button type="text" @click="openChooseDg">选择系统已登记商品</el-button><br/>
@@ -180,7 +264,7 @@
                 <img v-bind:src="replenishForm.condensePicLink" alt="replenishForm.name">
             </el-form-item>
             <el-form-item label="名字">
-                <el-input v-model="replenishForm.name" size="mini"></el-input>
+                <el-input v-model="replenishForm.name" size="mini" :disabled="true"></el-input>
             </el-form-item>
             <el-form-item label="描述" prop="depict">
                 <el-input v-model="replenishForm.depict" size="mini"></el-input>
@@ -188,9 +272,9 @@
             <el-form-item label="定价" prop="currentPrice">
                 <el-input v-model="replenishForm.currentPrice" size="mini"></el-input>
             </el-form-item>
-            <el-form-item label="数量" prop="number">
+            <el-form-item label="数量" prop="num">
                 <template>
-                    <el-input-number v-model="replenishForm.number" :min="1" :max="9999" ></el-input-number>
+                    <el-input-number v-model="replenishForm.num" :min="1" :max="9999" ></el-input-number>
                 </template>
             </el-form-item>
             <el-form-item>
@@ -260,11 +344,21 @@
 <script src="js/vuescroll-slide.js"></script>
 <script src="js/vuescroll.js"></script>
 <script src="js/jquery-3.2.1.min.js"></script>
+<script src="js/msg.js"></script>
 <script type="text/javascript">
     new Vue({
         el:"#shop",
         data:function(){
             return{
+                activeIndex:"1",
+
+                dealTableData:[],
+                current:1,
+                total:0,
+                status:null,
+                size:3,
+                activeDealName:"all",
+
                 tableData:[],
                 activeName:"all",
                 searchForm: {
@@ -306,7 +400,7 @@
                 //补充信息弹窗信息
                 replenishDgVisible:false,
                 replenishForm: {
-                    number: 1
+
                 },
                 //登记新商品弹窗
                 registerDgVisible:false,
@@ -321,9 +415,22 @@
 
         },
         methods:{
+            //左侧栏目功能
+            handleSelect(key) {
+                this.activeIndex=key;
+                if(this.activeIndex=="1")   {
+                    this.initTable();
+                    this.activeName="all";
+                }
+                if(this.activeIndex=="2")   {
+                    this.initDealTable();
+                    this.activeDealName="all";
+                }
+            },
+
             showShop(){
                 const _this=this;
-                axios.get('http://'+window.location.host+'/shop/getShop',{params:{id:_this.shopId}})
+                axios.get('http://'+window.location.host+'/shop/getOneShop',{params:{id:_this.shopId}})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.name=response.data.rtnData.name;
@@ -335,7 +442,7 @@
                             _this.$bdmsg({
                                 type:"toast",
                                 msgType:"error",
-                                message: msg+'失败！'+response.data.rtnMsg
+                                message: "获取超市信息"+'失败！'+response.data.rtnMsg
                             });
                         }
                     }).catch(function (error) {
@@ -370,7 +477,7 @@
                             _this.$bdmsg({
                                 type:"toast",
                                 msgType:"error",
-                                message: msg+'失败！'+response.data.rtnMsg
+                                message: "获取超市商品信息"+'失败！'+response.data.rtnMsg
                             });
                         }
                     }).catch(function (error) {
@@ -384,7 +491,7 @@
                 const _this=this;
                 _this.loading=true;
                 axios.post('http://'+window.location.host+'/goods/getGoodsPage',{size:_this.size,
-                    current:_this.current,typeId:_this.typeId,name:_this.searchName,status:"enabled"})
+                    current:_this.current,typeId:_this.typeId,name:_this.searchName,status:"enabled",number:0})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.cardData=response.data.rtnData;
@@ -419,6 +526,7 @@
                 }
                 this.searchForm.current=1;
             },
+
             handleSizeChange:function(val) {
                 this.searchForm.size=val;
                 this.initTable();
@@ -427,6 +535,7 @@
                 this.searchForm.current=val;
                 this.initTable();
             },
+
             //打开新建商品弹窗
             openAddGoods:function () {
                 this.addDgVisible=true;
@@ -528,7 +637,7 @@
                 axios.post('http://'+window.location.host+'/shopGoods/modifyShopGoods',{form:_this.modifyForm,shopId:_this.shopId})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
-                            _this.modifyDgVisible=true;
+                            _this.modifyDgVisible=false;
                             _this.initTable();
                             _this.$message('修改超市商品数据成功！');
                         }else if(response.data.rtnFlag=="1001"){//未登录
@@ -610,6 +719,49 @@
                 }).then(function () {
                     // always executed
                 });
+            },
+
+            initDealTable:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/deal/getDealPage',{size:_this.size,current:_this.current,shopId:_this.shopId,status:_this.status})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.dealTableData=response.data.rtnData;
+                            _this.total=response.data.total;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '初始化交易列表数据'+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            handleDealSizeChange:function(val){
+                this.size=val;
+                this.initDealTable();
+            },
+            handleDealCurrentChange:function(){
+                this.current=val;
+                this.initDealTable();
+            },
+
+            handleDealTabClick:function(obj){
+                if(obj.name=="all"){
+                    this.status=null;
+                    this.initDealTable();
+                }else{
+                    this.status=obj.name;
+                    this.initDealTable();
+                }
+                this.current=1;
             },
 
         },

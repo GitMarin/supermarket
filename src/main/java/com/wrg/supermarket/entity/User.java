@@ -122,7 +122,7 @@ public class User implements Serializable {
         this.lastAccessTime = lastAccessTime;
     }
 
-    public Integer getDealNumber(int i) {
+    public Integer getDealNumber() {
         return dealNumber;
     }
 

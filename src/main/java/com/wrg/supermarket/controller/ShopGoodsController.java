@@ -32,6 +32,11 @@ public class ShopGoodsController {
         form.put("shopId",map.get("shopId"));
         return iShopGoodsService.getShopGoodsPage(form);
     }
+    @ResponseBody
+    @RequestMapping("/getOneShopGoods")
+    public MkplatWebModel getOneShopGoods(@RequestBody Map<String,Object> map){
+        return iShopGoodsService.getOneShopGoods(map);
+    }
 
     @ResponseBody
     @RequestMapping("/addShopGoods")
@@ -64,6 +69,14 @@ public class ShopGoodsController {
         form.put("shopId",map.get("shopId"));
         return iShopGoodsService.offlineShopGoods(form);
     }
+
+    @ResponseBody
+    @RequestMapping("/modifyShopGoodsStatus")
+    public MkplatWebModel modifyShopGoodsStatus(@RequestBody Map<String,Object> map){
+        return iShopGoodsService.modifyShopGoodsStatus(map);
+    }
+
+
 
 
 }
