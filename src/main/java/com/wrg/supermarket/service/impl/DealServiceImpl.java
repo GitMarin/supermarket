@@ -42,6 +42,8 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
     private  UserMapper userMapper;
     @Autowired
     private ShoppingCartMapper shoppingCartMapper;
+    @Autowired
+    private AccountMapper accountMapper;
 
     @Override
     public MkplatWebModel getDealPage(Map<String,Object> map){
@@ -81,8 +83,14 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
                 //将deal中的shopId在shop表中进行转换，然后存放
                 String shopName=shopMapper.selectById(deal.getShopId()).getName();
                 resultMap.put("shopName",shopName);
+
             }
             else if(map.get("shopId")!=null){
+                String userName=userMapper.selectById(deal.getUserId()).getNickname();
+                resultMap.put("userName",userName);
+            }else{
+                String shopName=shopMapper.selectById(deal.getShopId()).getName();
+                resultMap.put("shopName",shopName);
                 String userName=userMapper.selectById(deal.getUserId()).getNickname();
                 resultMap.put("userName",userName);
             }
@@ -170,7 +178,7 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
         String dealId = map.get("dealId").toString();
         String status = map.get("status").toString();
         Deal deal = getById(dealId);
-        if(!status.equals("waitSend")&&!status.equals("waitConfirm")){
+        if(!status.equals("waitConfirm")){
             User user = userMapper.selectById(deal.getUserId());
             Shop shop = shopMapper.selectById(deal.getShopId());
 
@@ -194,7 +202,23 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
                     shopGoods.setDealNumber(shopGoods.getDealNumber()+1);
                     shopGoodsMapper.update(shopGoods,updateWrapper);
                 }
+                //资金转移
+                Account userAccount = accountMapper.selectById(user.getId());
+                Account shopAccount = accountMapper.selectById(shop.getId());
+                userAccount.setTransfer(userAccount.getTransfer().subtract(deal.getDealPrice()));
+                shopAccount.setWallet(shopAccount.getWallet().add(deal.getDealPrice()));
+                accountMapper.updateById(userAccount);
+                accountMapper.updateById(shopAccount);
+
             }
+            //付款
+            else if(status.equals("waitSend")){
+                Account userAccount = accountMapper.selectById(user.getId());
+                userAccount.setWallet(userAccount.getWallet().subtract(deal.getDealPrice()));
+                userAccount.setTransfer(deal.getDealPrice());
+                accountMapper.updateById(userAccount);
+            }
+            //评价
             else if(status.equals("over") && map.get("comment")!=null){
                 user.setCommentNumber(user.getCommentNumber()+1);
 

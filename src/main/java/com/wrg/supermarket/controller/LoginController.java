@@ -23,27 +23,23 @@ public class LoginController {
     private ILoginService iLoginService;
 
     @ResponseBody
-    @RequestMapping("/loginUser")
-    public MkplatWebModel loginUser(@RequestParam("username")String username,
-                                @RequestParam("password")String password,
-                                HttpSession session){
-        MkplatWebModel mkplatWebModel = iLoginService.loginUser(username,password);
-//        if(mkplatWebModel.rtnFlag=="9999"){
-//            session.setAttribute("loginUser",username);
-//        }
+    @RequestMapping("/login")
+    public MkplatWebModel login(@RequestParam("username")String username,
+                                    @RequestParam("password")String password,
+                                    @RequestParam("type") String type,
+                                    HttpServletRequest request){
+        MkplatWebModel mkplatWebModel = iLoginService.login(username,password,type);
+        if(mkplatWebModel.rtnFlag=="9999"){
+            request.getSession().setAttribute("data",mkplatWebModel.rtnData);
+        }
         return mkplatWebModel;
     }
 
     @ResponseBody
-    @RequestMapping("/loginShop")
-    public MkplatWebModel loginShop(@RequestParam("username")String username,
-                                    @RequestParam("password")String password,
-                                    HttpSession session){
-        MkplatWebModel mkplatWebModel = iLoginService.loginShop(username,password);
-//        if(mkplatWebModel.rtnFlag=="9999"){
-//            session.setAttribute("loginUser",username);
-//        }
-        return mkplatWebModel;
+    @RequestMapping("/logout")
+    public MkplatWebModel logout(HttpServletRequest request){
+        request.getSession().removeAttribute("data");
+        return MkplatWebModel.success();
     }
 
 
@@ -62,16 +58,17 @@ public class LoginController {
     @ResponseBody
     @RequestMapping("/testUsername")
     public MkplatWebModel testUsername(@RequestBody Map<String,Object> map){
-        String username= (String) map.get("username");
-        return iLoginService.testUsername(username);
+        String name= (String) map.get("username");
+        return iLoginService.testName(name,"user");
     }
 
     @ResponseBody
     @RequestMapping("/testShopName")
     public MkplatWebModel testShopName(@RequestBody Map<String,Object> map){
-        String username= (String) map.get("username");
-        return iLoginService.testShopName(username);
+        String name= (String) map.get("username");
+        return iLoginService.testName(name,"shop");
     }
+
 
 
 }

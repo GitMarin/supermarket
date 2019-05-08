@@ -21,6 +21,30 @@
             width: 150px;
             height: 150px;
         }
+        .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 146px;
+            height: 146px;
+            line-height: 178px;
+            text-align: center;
+        }
+        .avatar {
+            width: 146px;
+            height: 146px;
+            display: block;
+            border-radius: 5px;
+        }
     </style>
 
 </head>
@@ -41,9 +65,11 @@
 
                         <label>账号：{{id}}</label><br>
                         <label>名字：{{name}}</label><br>
-                        <label>简介：{{remark}}</label>
-                        <el-button>修改信息</el-button>
-
+                        <label>简介：{{remark}}</label><br>
+                        <el-button-group>
+                            <el-button @click="openDg_modifyShop" size="mini">修改信息</el-button>
+                            <el-button @click="logout" type="danger" size="mini">退出登录</el-button>
+                        </el-button-group>
                         <img :src="picLink" style="border-radius: 20px;width: 60px;height: 60px;float: right" alt="超市头像" slot="reference">
                     </el-popover>
                 </el-col>
@@ -152,6 +178,7 @@
                         <el-tab-pane label="待收货" name="waitConfirm"></el-tab-pane>
                         <el-tab-pane label="待评价" name="waitComment"></el-tab-pane>
                         <el-tab-pane label="待退款" name="waitRefund"></el-tab-pane>
+                        <el-tab-pane label="已退款" name="refund"></el-tab-pane>
                         <el-tab-pane label="完成" name="over"></el-tab-pane>
                     </el-tabs>
                     <el-table border empty-text=" " height="50px" style="width: 100%">
@@ -196,9 +223,9 @@
 
                     <el-pagination
                             :page-sizes="[3, 6, 9, 15]"
-                            :current-page="current"
-                            :page-size="size"
-                            :total="total"
+                            :current-page="dealCurrent"
+                            :page-size="dealSize"
+                            :total="dealTotal"
                             @size-change="handleDealSizeChange"
                             @current-change="handleDealCurrentChange"
                             layout="total, sizes, prev, pager, next, jumper">
@@ -242,12 +269,12 @@
                 <br>
                 <el-pagination
                         :page-sizes="[8, 12, 24, 48]"
-                        :current-page="current"
-                        :page-size.sync ="size"
+                        :current-page="goodsCurrent"
+                        :page-size.sync ="goodsSize"
                         @size-change="goodsHandleSizeChange"
                         @current-change="goodsHandleCurrentChange"
                         layout="total, sizes, prev, pager, next, jumper"
-                        :total="total">
+                        :total="goodsTotal">
                 </el-pagination>
             </div>
         </el-card>
@@ -258,12 +285,24 @@
     <!--选择系统已登记商品 弹窗 结束-->
 
     <!--新建商品 补充数据-->
-    <el-dialog  title="补充商品信息" :visible.sync="replenishDgVisible" width="300px" @close="resetForm('replenishForm')">
+    <el-dialog  title="补充商品信息" :visible.sync="replenishDgVisible" width="300px" @close="resetForm('replenishForm');resetFileList()">
         <el-form ref="replenishForm" :inline="true" :model="replenishForm" label-width="80px" size="mini">
-            <el-form-item>
+            <el-form-item prop="condensePicLink">
                 <img v-bind:src="replenishForm.condensePicLink" alt="replenishForm.name">
             </el-form-item>
-            <el-form-item label="名字">
+            <el-form-item>
+                <el-upload
+                        class="upload-demo"
+                        action="/import"
+                        :on-change="handleShopGoodsChange"
+                        :on-remove="handleShopGoodsRemove"
+                        :file-list="fileList"
+                        list-type="picture">
+                    <el-button size="small" type="primary">点击上传</el-button>
+                    <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+                </el-upload>
+            </el-form-item>
+            <el-form-item label="名字" prop="name">
                 <el-input v-model="replenishForm.name" size="mini" :disabled="true"></el-input>
             </el-form-item>
             <el-form-item label="描述" prop="depict">
@@ -296,6 +335,19 @@
                 <el-cascader expand-trigger="hover" :options="options"  placeholder="请选择类型" :clearable="true"
                              :change-on-select="true" :show-all-levels="false" @change="registerGoodsHandleChange">
                 </el-cascader>
+            </el-form-item>
+            <el-form-item label="照片" prop="condensePicLink">
+                <el-upload
+                        style="display: inline"
+                        :show-file-list="false"
+                        list-type="picture-card"
+                        :on-success="onGoodsSuccess"
+                        :on-error="onError"
+                        :before-upload="beforeUpload"
+                        action="/import">
+                    <img v-if="registerGoodsForm.condensePicLink" :src="registerGoodsForm.condensePicLink" class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
             </el-form-item>
             <el-form-item label="品牌名" prop="brandName">
                 <el-input v-model="registerGoodsForm.brandName" size="mini"></el-input>
@@ -335,6 +387,41 @@
             </el-form-item>
         </el-form>
     </el-dialog>
+
+    <!--修改超市信息弹窗-->
+
+    <el-dialog id="modifyDg" :title="modifyShopDgTitle" :visible.sync="modifyShopDgVisible"  width="350px" @close="dialogClose('modifyShopDgVisible')">
+        <el-form :model="modifyShopForm"  :rules="modifyShopFormRules" ref="modifyShopForm" label-width="60px">
+            <el-form-item label="头像" prop="picLink">
+                <el-upload
+                        style="display: inline"
+                        :show-file-list="false"
+                        list-type="picture-card"
+                        :on-success="onShopSuccess"
+                        :on-error="onError"
+                        :before-upload="beforeUpload"
+                        action="/import">
+                    <img v-if="picLink" :src="modifyShopForm.picLink" class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+            </el-form-item>
+            <el-form-item label="昵称" prop="name">
+                <el-input v-model="modifyShopForm.name" autocomplete="off" clearable></el-input>
+            </el-form-item>
+
+
+            <el-form-item label="介绍" prop="remark">
+                <el-input v-model="modifyShopForm.remark" autocomplete="off" clearable></el-input>
+            </el-form-item>
+
+            <el-form-item label="地址" prop="address">
+                <el-input v-model="modifyShopForm.address" autocomplete="off" clearable></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button type="primary" size="mini" @click="modifyShop">保 存</el-button>
+        </div>
+    </el-dialog>
 </div>
 </body>
 <script src="js/vue.js"></script>
@@ -353,10 +440,10 @@
                 activeIndex:"1",
 
                 dealTableData:[],
-                current:1,
-                total:0,
+                dealCurrent:1,
+                dealTotal:0,
                 status:null,
-                size:3,
+                dealSize:3,
                 activeDealName:"all",
 
                 tableData:[],
@@ -394,23 +481,54 @@
                 typeId:null,
                 searchName:null,
                 chooseDgVisible:false,
-                current:1,
-                size:8,
-                total:null,
+                goodsCurrent:1,
+                goodsSize:8,
+                goodsTotal:null,
                 //补充信息弹窗信息
                 replenishDgVisible:false,
                 replenishForm: {
 
                 },
+
+                fileList: [],
                 //登记新商品弹窗
                 registerDgVisible:false,
-                registerGoodsForm:{},
+                registerGoodsForm:{
+                    condensePicLink:null,
+
+                },
 
                 //修改商品信息弹窗
                 modifyDgVisible:false,
                 modifyForm:{
                     number:1
-                }
+                },
+
+                //修改超市信息弹窗
+                modifyShopDgTitle:null,
+                modifyShopDgVisible:false,
+                modifyShopForm:{
+                    id:null,
+                    nickname: null,
+                    gender:null,
+                    sign:null,
+                    address:null,
+                    picLink:null,
+                },
+                modifyShopFormRules:{
+                    name: [
+                        { required: true, message: '请输入超市名', trigger: 'blur' },
+                        { min: 2,  message: '不可少于2个字符', trigger: 'blur' }
+                    ],
+                    remark:[
+                        { required: true, message: '请输入介绍', trigger: 'blur' },
+                        { min: 2,  message: '不可少于2个字符', trigger: 'blur' }
+                    ],
+                    address:[
+                        { required: true, message: '请输入地址', trigger: 'blur' },
+                        { min: 2,  message: '不可少于2个字符', trigger: 'blur' }
+                    ],
+                },
             }
 
         },
@@ -427,6 +545,29 @@
                     this.activeDealName="all";
                 }
             },
+            logout:function(){
+                this.$confirm('退出登录, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.get('http://'+window.location.host+'/logout')
+                        .then(function (response) {
+                            window.location.href = "";
+                        })
+                        .catch(function (error) {
+                        });
+                    this.$message({
+                        type: 'success',
+                        message: '退出成功!'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
 
             showShop(){
                 const _this=this;
@@ -436,6 +577,8 @@
                             _this.name=response.data.rtnData.name;
                             _this.id=response.data.rtnData.id;
                             _this.remark=response.data.rtnData.remark;
+                            _this.address=response.data.rtnData.address;
+                            _this.picLink=response.data.rtnData.picLink;
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
@@ -490,12 +633,12 @@
             getGoodsPage:function(){
                 const _this=this;
                 _this.loading=true;
-                axios.post('http://'+window.location.host+'/goods/getGoodsPage',{size:_this.size,
-                    current:_this.current,typeId:_this.typeId,name:_this.searchName,status:"enabled",number:0})
+                axios.post('http://'+window.location.host+'/goods/getGoodsPage',{size:_this.goodsSize,
+                    current:_this.goodsCurrent,typeId:_this.typeId,name:_this.searchName,status:"enabled",number:0})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.cardData=response.data.rtnData;
-                            _this.total=response.data.total;
+                            _this.goodsTotal=response.data.total;
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
@@ -547,11 +690,11 @@
             },
 
             goodsHandleSizeChange:function(val){
-                this.size=val;
+                this.goodsSize=val;
                 this.getGoodsPage();
             },
             goodsHandleCurrentChange:function(val){
-                this.current=val;
+                this.goodsCurrent=val;
                 this.getGoodsPage();
             },
             //打开选择商品弹窗
@@ -696,7 +839,26 @@
                     // always executed
                 });
             },
+            handleShopGoodsChange(file, fileList) {
 
+                this.fileList.length=0;
+                for (var i = 0; i < fileList.length; i++) {
+                    if (fileList[i].response != null) this.fileList[i] = fileList[i].response.rtnData;
+                }
+                console.log(this.fileList);
+
+            },
+            handleShopGoodsRemove(file, fileList) {
+                this.fileList.length=0;
+                for (var i = 0; i < fileList.length; i++) {
+                    if (fileList[i].response != null) this.fileList[i] = fileList[i].response.rtnData;
+                }
+                console.log(this.fileList);
+            },
+
+            resetFileList:function(){
+                this.fileList=[];
+            },
 
             getParentGoodsType:function(){
                 const _this=this;
@@ -723,11 +885,11 @@
 
             initDealTable:function(){
                 const _this=this;
-                axios.post('http://'+window.location.host+'/deal/getDealPage',{size:_this.size,current:_this.current,shopId:_this.shopId,status:_this.status})
+                axios.post('http://'+window.location.host+'/deal/getDealPage',{size:_this.dealSize,current:_this.dealCurrent,shopId:_this.shopId,status:_this.status})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.dealTableData=response.data.rtnData;
-                            _this.total=response.data.total;
+                            _this.dealTotal=response.data.total;
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
@@ -745,11 +907,11 @@
                 });
             },
             handleDealSizeChange:function(val){
-                this.size=val;
+                this.dealSize=val;
                 this.initDealTable();
             },
             handleDealCurrentChange:function(){
-                this.current=val;
+                this.dealCurrent=val;
                 this.initDealTable();
             },
 
@@ -761,16 +923,69 @@
                     this.status=obj.name;
                     this.initDealTable();
                 }
-                this.current=1;
+                this.dealCurrent=1;
             },
 
+            openDg_modifyShop(){
+                this.modifyShopDgTitle='修改超市信息（'+this.shopId+"）"
+                this.modifyShopForm.id=this.shopId;
+                this.modifyShopForm.name=this.name;
+                this.modifyShopForm.address=this.address;
+                this.modifyShopForm.remark=this.remark;
+                this.modifyShopForm.picLink=this.picLink;
+                this.modifyShopDgVisible=true;
+            },
+
+            onShopSuccess:function(response, file, fileList) {
+                this.modifyShopForm.picLink=response.rtnData;
+            },
+            onGoodsSuccess:function(response, file, fileList) {
+                this.registerGoodsForm.condensePicLink=response.rtnData;
+            },
+            onError(err, file, fileList) {},
+            beforeUpload(file) {},
+
+            dialogClose:function(visible,form){
+                //form 重置没做到
+                if(form){
+                    this.resetForm(form);
+                }
+                this[visible]=false;
+            },
+            modifyShop:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shop/modifyShop',
+                    {   id:_this.modifyShopForm.id,
+                        name: _this.modifyShopForm.name,
+                        address:_this.modifyShopForm.address,
+                        remark:_this.modifyShopForm.remark,
+                        picLink:_this.modifyShopForm.picLink,
+                    }).then(function (response) {
+                    if(response.data.rtnFlag=="9999"){//请求成功
+                        _this.$message('超市信息修改成功！');
+                        _this.modifyShopDgVisible=false;
+                        _this.showShop();
+                    }else if(response.data.rtnFlag=="1001"){//未登录
+                        //_this.loginDgVisible=true;
+                    }else{
+                        _this.$bdmsg({
+                            type:"toast",
+                            msgType:"error",
+                            message: '账号信息修改失败！'+response.data.rtnMsg
+                        });
+                    }
+                }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
         },
         mounted: function() {
             const _this=this;
             var url = window.location.href;
-            var row =  url.split("?")[1].split("&");
-            _this.picLink=row[0].split("=")[1];
-            _this.shopId=row[1].split("=")[1];
+            _this.shopId =  url.split("?")[1].split("=")[1];
             this.getParentGoodsType();
             this.initTable();
             this.showShop();

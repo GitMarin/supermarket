@@ -15,15 +15,11 @@ import java.util.Map;
  **/
 public interface ILoginService extends IService<User> {
 
-    MkplatWebModel loginUser(String username, String password);
-
-    MkplatWebModel loginShop(String username, String password);
+    MkplatWebModel login(String username, String password,String type);
 
     MkplatWebModel registerUser(Map<String,Object> map);
 
     MkplatWebModel registerShop(Map<String,Object> map);
 
-    MkplatWebModel testUsername(String username);
-
-    MkplatWebModel testShopName(String username);
+    MkplatWebModel testName(String username,String type);
 }

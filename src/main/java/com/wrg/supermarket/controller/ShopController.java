@@ -36,11 +36,16 @@ public class ShopController  {
 
 
     @ResponseBody
-    @RequestMapping("/modifyShop")
-    public MkplatWebModel modifyShop(@RequestBody Map<String,Object> map){
+    @RequestMapping("/modifyShopStatus")
+    public MkplatWebModel modifyShopStatus(@RequestBody Map<String,Object> map){
         return iShopService.modifyShopStatus(map);
     }
 
+    @ResponseBody
+    @RequestMapping("/modifyShop")
+    public MkplatWebModel modifyShop(@RequestBody Map<String,Object> map){
+        return iShopService.modifyShop(map);
+    }
 
 }
 

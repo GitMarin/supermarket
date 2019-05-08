@@ -16,9 +16,6 @@ import java.time.LocalDateTime;
 public class User implements Serializable {
     private static final long serialVersionUID = 1L;
     private String id;
-    private String username;
-    private String password;
-    private String type;
     private String avatar;
     private String nickname;
     private String sign;
@@ -50,13 +47,6 @@ public class User implements Serializable {
         this.id = id;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public String getAvatar() {
         return avatar;
@@ -152,22 +142,6 @@ public class User implements Serializable {
 
     public void setShoppingCartNumber(Integer shoppingCartNumber) {
         this.shoppingCartNumber = shoppingCartNumber;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
 }

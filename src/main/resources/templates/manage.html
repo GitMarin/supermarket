@@ -6,12 +6,39 @@
     <link rel="stylesheet" type="text/css" href="styles/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="styles/index.css">
     <link rel="stylesheet" type="text/css" href="styles/vuescroll.css">
+    <style>
+        .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 146px;
+            height: 146px;
+            line-height: 178px;
+            text-align: center;
+        }
+        .avatar {
+            width: 146px;
+            height: 146px;
+            display: block;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body style="height: 100%">
 <div id="manage" style="height: 100%">
     <el-container style="width: 100%;background-color: white;height: 100%">
         <el-header style="background-color: #5bb2ff">
             <h5 style="text-align: center;color: white;height: 30px;line-height: 50px;float: left;">管理系统</h5>
+            <el-button @click="logout" type="danger" style="float: right;margin-top: 10px">退出登录</el-button>
         </el-header>
         <el-container style="height: 100%">
             <el-aside style="width: 15%;height: 100%">
@@ -126,6 +153,19 @@
                                     <el-cascader expand-trigger="hover" :options="options"  placeholder="请选择" :clearable="true" v-model="goodsForm.pName"
                                                  :change-on-select="true" :show-all-levels="false" @change="goodsHandleChange">
                                     </el-cascader>
+                                </el-form-item>
+                                <el-form-item label="照片" prop="condensePicLink">
+                                    <el-upload
+                                            style="display: inline"
+                                            :show-file-list="false"
+                                            list-type="picture-card"
+                                            :on-success="onGoodsSuccess"
+                                            :on-error="onError"
+                                            :before-upload="beforeUpload"
+                                            action="/import">
+                                        <img v-if="goodsForm.condensePicLink" :src="goodsForm.condensePicLink" class="avatar">
+                                        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                                    </el-upload>
                                 </el-form-item>
                                 <el-form-item label="商品品牌" prop="brandName">
                                     <el-input v-model="goodsForm.brandName"></el-input>
@@ -309,7 +349,74 @@
                 <!----------------订单管理-------------------->
                 <el-row v-if="this.activeIndex=='4'">
                     <el-col>
-                        <span>超市列表</span>
+                        <el-row>
+                            <span>订单列表</span>
+                            <el-tabs @tab-click="handleTabClick">
+                                <el-tab-pane label="全部" name="all"></el-tab-pane>
+                                <el-tab-pane label="待付款" name="waitPay"></el-tab-pane>
+                                <el-tab-pane label="待发货" name="waitSend"></el-tab-pane>
+                                <el-tab-pane label="待收货" name="waitConfirm"></el-tab-pane>
+                                <el-tab-pane label="待评价" name="waitComment"></el-tab-pane>
+                                <el-tab-pane label="待退款" name="waitRefund"></el-tab-pane>
+                                <el-tab-pane label="已退款" name="refund"></el-tab-pane>
+                                <el-tab-pane label="完成" name="over"></el-tab-pane>
+                            </el-tabs>
+                            <el-card style="width: 100%;height: 50px">
+                                <el-row>
+                                    <el-col :span="10"><label>宝贝</label></el-col>
+                                    <el-col :span="3"><label>单价</label></el-col>
+                                    <el-col :span="4"><label>数量</label></el-col>
+                                    <el-col :span="7"><label>操作</label></el-col>
+                                </el-row>
+                            </el-card>
+                            <div v-for="t in dealTableData" style="width: 100%">
+                                <el-card>
+                                    <el-row style="height: 25px">
+                                        <el-col :span="5"><span>创建时间:{{t.createTime}}</span></el-col>
+                                        <el-col :span="7"><span>交易单号:{{t.dealId}}</span></el-col>
+                                        <el-col :span="4"><span>超市名:{{t.shopName}}</span></el-col>
+                                        <el-col :span="4"><span>用户名:{{t.userName}}</span></el-col>
+                                        <el-col :span="2">
+                                            <el-tag v-if="t.status == 'waitPay'">待付款</el-tag>
+                                            <el-tag v-if="t.status == 'waitSend'">待发货</el-tag>
+                                            <el-tag v-if="t.status == 'waitConfirm'">待收货</el-tag>
+                                            <el-tag v-if="t.status == 'waitComment'">待评价</el-tag>
+                                            <el-tag v-if="t.status == 'waitRefund'">待退款</el-tag>
+                                            <el-tag v-if="t.status == 'over'">完成</el-tag>
+                                        </el-col>
+
+                                        <el-col :span="2">
+                                            <el-button-group>
+<!--                                                <el-button size="small" v-if="t.status == 'waitPay'" type="primary" @click="openPay(t.dealId)">付款</el-button>-->
+<!--                                                <el-button size="small" v-if="t.status == 'waitConfirm'" type="primary" @click="openConfirm(t.dealId)">收货</el-button>-->
+<!--                                                <el-button size="small" v-if="t.status == 'waitComment'" type="success" @click="openComment(t.dealId)">评价</el-button>-->
+<!--                                                <el-button size="small" v-if="t.status == 'waitSend'" type="primary">提醒发货</el-button>-->
+<!--                                                <el-button size="small" v-if="t.status != 'waitPay' && t.status != 'over'" type="warning">退款</el-button>-->
+<!--                                                <el-button size="small" v-if="t.status == 'waitPay'" type="danger" @click="openDelete(t.dealId)">撤销</el-button>-->
+                                            </el-button-group>
+                                        </el-col>
+                                    </el-row>
+                                </el-card>
+                                <el-card v-for="v in t.cardData" style="height: 55px">
+                                    <el-row>
+                                        <el-col :span="10"><span>{{v.goodsName}}</span></el-col>
+                                        <el-col :span="4"><span>￥{{v.goodsPrice}}元</span></el-col>
+                                        <el-col :span="3"><span>{{v.goodsNumber}}</span></el-col>
+                                        <el-col :span="6"></el-col>
+                                    </el-row>
+                                </el-card><br>
+                            </div>
+
+                            <el-pagination
+                                    :page-sizes="[3, 6, 9, 15]"
+                                    :current-page="dealCurrent"
+                                    :page-size="dealSize"
+                                    :total="dealTotal"
+                                    @size-change="handleDealSizeChange"
+                                    @current-change="handleDealCurrentChange"
+                                    layout="total, sizes, prev, pager, next, jumper">
+                            </el-pagination>
+                        </el-row>
                     </el-col>
                 </el-row>
             </el-main>
@@ -368,6 +475,7 @@
                     price:null,
                     brandName:null,
                     marque:null,
+                    condensePicLink:null,
                 },
                 goodsFormStyle:"display:none;",
                 goodsTitle:"新建商品",
@@ -390,6 +498,13 @@
                 shopGoodsCurrent:1,
                 shopGoodsSize:6,
                 shopGoodsTotal:0,
+
+                //订单所用参数
+                dealTableData:[],
+                dealSize:3,
+                dealCurrent:1,
+                dealStatus:null,
+                dealTotal:0,
             }
         },
         methods:{
@@ -421,7 +536,31 @@
                 if(this.activeIndex=="1")   this.initTable();
                 else if(this.activeIndex=="2")   this.initGoodsTable();
                 else if(this.activeIndex=="3")   this.initShopTable();
+                else if(this.activeIndex=="4")   this.initDealTable();
+            },
 
+            logout:function(){
+                this.$confirm('退出登录, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.get('http://'+window.location.host+'/logout')
+                        .then(function (response) {
+                            window.location.href = "";
+                        })
+                        .catch(function (error) {
+                        });
+                    this.$message({
+                        type: 'success',
+                        message: '退出成功!'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
             },
             //商品类型
             initTable:function(){
@@ -652,6 +791,12 @@
                 this.goodsCurrent=val;
                 this.initGoodsTable();
             },
+            onGoodsSuccess:function(response, file, fileList) {
+                console.log(response.rtnData);
+                this.goodsForm.condensePicLink=response.rtnData;
+            },
+            onError(err, file, fileList) {},
+            beforeUpload(file) {},
             //超市管理
             initShopTable:function () {
                 const _this=this;
@@ -735,7 +880,7 @@
 
             modifyShopStatus:function(id,status){
                 const _this=this;
-                axios.post('http://'+window.location.host+'/shop/modifyShop',{id:id,status:status})
+                axios.post('http://'+window.location.host+'/shop/modifyShopStatus',{id:id,status:status})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.initShopTable();
@@ -771,6 +916,49 @@
                                 type:"toast",
                                 msgType:"error",
                                 message: "获取超市商品信息"+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            handleTabClick:function (obj) {
+                if(obj.name=="all"){
+                    this.dealStatus=null;
+                    this.initDealTable();
+                } else{
+                    this.dealStatus=obj.name;
+                    this.initDealTable();
+                }
+                this.dealCurrent=1;
+            },
+            handleDealSizeChange:function(val){
+                this.dealSize=val;
+                this.initDealTable();
+            },
+            handleDealCurrentChange:function(val){
+                this.dealCurrent=val;
+                this.initDealTable();
+            },
+
+            initDealTable:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/deal/getDealPage',{size:_this.dealSize,current:_this.dealCurrent,status:_this.dealStatus})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.dealTableData=response.data.rtnData;
+                            _this.dealTotal=response.data.total;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '初始化交易列表数据'+'失败！'+response.data.rtnMsg
                             });
                         }
                     }).catch(function (error) {

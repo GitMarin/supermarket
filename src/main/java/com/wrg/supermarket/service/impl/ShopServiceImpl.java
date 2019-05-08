@@ -79,4 +79,16 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         updateById(shop);
         return MkplatWebModel.success();
     }
+
+    @Override
+    public MkplatWebModel modifyShop(Map<String,Object> map){
+        Shop shop = new Shop();
+        shop.setId(map.get("id").toString());
+        shop.setAddress(map.get("address").toString());
+        shop.setName(map.get("name").toString());
+        shop.setPicLink(map.get("picLink").toString());
+        shop.setRemark(map.get("remark").toString());
+        updateById(shop);
+        return MkplatWebModel.success();
+    }
 }

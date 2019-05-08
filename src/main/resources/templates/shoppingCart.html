@@ -38,6 +38,7 @@
                         <label>账号：{{userId}}</label><br>
                         <label>昵称：{{nickname}}</label><br>
                         <label>签名：{{sign}}</label>
+                        <el-button @click="logout" type="danger">退出登录</el-button>
                         <img :src="avatar" style="border-radius: 20px;width: 60px;height: 60px;float: right" alt="用户头像" slot="reference" @click="avatarClick">
                     </el-popover>
                 </el-col>
@@ -173,6 +174,31 @@
             goShoppingCart:function(){
                 window.location.href = "shoppingCart.html?id="+this.userId;
             },
+            logout:function(){
+                this.$confirm('退出登录, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.get('http://'+window.location.host+'/logout')
+                        .then(function (response) {
+                            window.location.href = "";
+                        })
+                        .catch(function (error) {
+                        });
+                    this.$message({
+                        type: 'success',
+                        message: '退出成功!'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+
+
 
             init:function () {
                 const _this=this;

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="height: 100%">
 <head>
     <meta charset="utf-8">
     <title>用户登录</title>
@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="styles/vuescroll.css">
 
 </head>
-<body>
+<body :background="backgroundImg" style="height: 100%; background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;">
 <div id="login" class="divForm">
 <el-card shadow="hover">
         <el-form ref="loginForm" :inline="true" :model="loginForm" label-width="70px" size="mini">
@@ -22,8 +22,8 @@
             </el-form-item><br>
             <el-form-item size="mini">
                 <el-button-group>
-                    <el-button type="primary" v-if="this.loginForm.labelName=='用户登录'" @click="loginUser">登录</el-button>
-                    <el-button type="primary" v-if="this.loginForm.labelName=='超市登录'" @click="loginShop">登录</el-button>
+                    <el-button type="primary" v-if="this.loginForm.labelName=='用户登录'" @click="login('user')">登录</el-button>
+                    <el-button type="primary" v-if="this.loginForm.labelName=='超市登录'" @click="login('shop')">登录</el-button>
                     <el-button type="primary" @click="openRegisterDg">注册</el-button>
                     <el-button type="primary" v-if="this.loginForm.labelName=='超市登录'" @click="changeLabel">用户</el-button>
                     <el-button type="primary" v-if="this.loginForm.labelName=='用户登录'" @click="changeLabel">超市</el-button>
@@ -144,6 +144,7 @@
 
             return {
                 //登陆数据
+                backgroundImg:"img/wpic396.jpg",
                 loginForm:{
                     labelName:"用户登录",
                     username:'',
@@ -209,17 +210,19 @@
                 if(this.loginForm.labelName=="用户登录"){
                     this.registerDgTitle="超市注册";
                     this.loginForm.labelName="超市登录";
+                    this.backgroundImg="img/wpic660.jpg";
                 }else if(this.loginForm.labelName=="超市登录") {
                     this.registerDgTitle = "用户注册";
                     this.loginForm.labelName = "用户登录";
+                    this.backgroundImg="img/wpic396.jpg";
                 }
             },
-            loginUser(){
-                this.loading=true;
+            login(type){
                 var _this=this;
-                axios.get('http://'+window.location.host+'/loginUser',
+                axios.get('http://'+window.location.host+'/login',
                     {params:{username:_this.loginForm.username?_this.loginForm.username:null,
                             password:_this.loginForm.password?_this.loginForm.password:null,
+                            type:type,
                         }}).then(function (response) {
                     if(response.data.rtnFlag=="9999"){//请求成功
                         _this.$message('登陆成功！');
@@ -227,34 +230,8 @@
                             window.location.href = "index.html?id="+response.data.rtnData.id;
                         else if(response.data.rtnData.type=="admin")
                             window.location.href ="manage.html";
-                    }else if(response.data.rtnFlag=="1001"){//未登录
-                        // _this.loginDgVisible=true;
-                    }else{
-                        _this.$bdmsg({
-                            type:"toast",
-                            msgType:"error",
-                            message: '登陆失败！'+response.data.rtnMsg
-                        });
-                    }
-                    _this.loading=false;
-                }).catch(function (error) {
-                    // handle error
-                    console.log(error);
-                }).then(function () {
-                    // always executed
-                });
-            },
-
-            loginShop(){
-                this.loading=true;
-                var _this=this;
-                axios.get('http://'+window.location.host+'/loginShop',
-                    {params:{username:_this.loginForm.username?_this.loginForm.username:null,
-                            password:_this.loginForm.password?_this.loginForm.password:null,
-                        }}).then(function (response) {
-                    if(response.data.rtnFlag=="9999"){//请求成功
-                        _this.$message('登陆成功！');
-                        window.location.href = "shop.html?picLink="+response.data.rtnData.picLink+"&id="+response.data.rtnData.id;
+                        else if(response.data.rtnData.type=="shop")
+                            window.location.href = "shop.html?id="+response.data.rtnData.id;
                     }else if(response.data.rtnFlag=="1001"){//未登录
                         // _this.loginDgVisible=true;
                     }else{

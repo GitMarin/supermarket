@@ -26,9 +26,10 @@
             text-align: center;
         }
         .avatar {
-            width: 178px;
-            height: 178px;
+            width: 146px;
+            height: 146px;
             display: block;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -42,7 +43,7 @@
                 </el-col>
                 <el-col :span="7">
                     <el-badge :value="shoppingCartNumber" class="item" style="float: right;margin-top: 10px">
-                        <img src="img/shoppingCart.png" style="width: 40px;height: 40px;" @click="goShoppingCart">
+                        <img src="image/shoppingCart.png" style="width: 40px;height: 40px;" @click="goShoppingCart">
                     </el-badge>
                 </el-col>
                 <!--存放头像等信息-->
@@ -55,6 +56,7 @@
                         <label>账号：{{userId}}</label><br>
                         <label>昵称：{{nickname}}</label><br>
                         <label>签名：{{sign}}</label>
+                        <el-button @click="logout" type="danger">退出登录</el-button>
                         <img :src="avatar" style="border-radius: 20px;width: 60px;height: 60px;float: right" alt="用户头像" slot="reference" @click="avatarClick">
                     </el-popover>
                 </el-col>
@@ -83,6 +85,7 @@
                     <el-tab-pane label="待收货" name="waitConfirm"></el-tab-pane>
                     <el-tab-pane label="待评价" name="waitComment"></el-tab-pane>
                     <el-tab-pane label="待退款" name="waitRefund"></el-tab-pane>
+                    <el-tab-pane label="已退款" name="refund"></el-tab-pane>
                     <el-tab-pane label="完成" name="over"></el-tab-pane>
                 </el-tabs>
                 <el-table border empty-text=" " height="50px" style="width: 100%">
@@ -145,17 +148,19 @@
 <!--修改用户信息弹窗-->
     <el-dialog id="modifyDg" :title="modifyDgTitle" :visible.sync="modifyDgVisible"  width="350px" @close="dialogClose('modifyDgVisible')">
         <el-form :model="modifyForm"  :rules="modifyFormRules" ref="modifyForm" label-width="60px">
-<!--            <el-form-item prop="avatar">-->
-<!--                <el-upload-->
-<!--                        class="avatar-uploader"-->
-<!--                        :action="/img"-->
-<!--                        :show-file-list="false"-->
-<!--                        :on-success="handleAvatarSuccess"-->
-<!--                        :before-upload="beforeAvatarUpload">-->
-<!--                    <img v-if="modifyForm.avatar" :src="modifyForm.avatar" class="avatar">-->
-<!--                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>-->
-<!--                </el-upload>-->
-<!--            </el-form-item>-->
+            <el-form-item label="头像" prop="avatar">
+                <el-upload
+                        style="display: inline"
+                        :show-file-list="false"
+                        list-type="picture-card"
+                        :on-success="onSuccess"
+                        :on-error="onError"
+                        :before-upload="beforeUpload"
+                        action="/import">
+                    <img v-if="avatar" :src="modifyForm.avatar" class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+            </el-form-item>
             <el-form-item label="昵称" prop="nickname">
                 <el-input v-model="modifyForm.nickname" autocomplete="off" clearable></el-input>
             </el-form-item>
@@ -220,6 +225,7 @@
                 tableData:[],
                 status:null,
 
+
                 //修改账号弹窗参数
                 modifyDgTitle:null,
                 modifyDgVisible:false,
@@ -281,6 +287,29 @@
             },
             goShoppingCart:function(){
                 window.location.href = "shoppingCart.html?id="+this.userId;
+            },
+            logout:function(){
+                this.$confirm('退出登录, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.get('http://'+window.location.host+'/logout')
+                        .then(function (response) {
+                            window.location.href = "";
+                        })
+                        .catch(function (error) {
+                        });
+                    this.$message({
+                        type: 'success',
+                        message: '退出成功!'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
             },
 
 
@@ -350,25 +379,23 @@
                 this.modifyForm.address=this.address;
                 this.modifyForm.sign=this.sign;
                 this.modifyForm.gender=this.gender;
+                this.modifyForm.avatar=this.avatar;
                 this.modifyDgVisible=true;
             },
-            modifyAccount(){
-                var _this=this;
+            modifyAccount:function(){
+                const _this=this;
                 axios.post('http://'+window.location.host+'/user/modifyUser',
                     {   id:_this.modifyForm.id,
                         nickname: _this.modifyForm.nickname,
-                        address:_this.modifyForm.address,
+                        defaultAddress:_this.modifyForm.address,
                         sign:_this.modifyForm.sign,
                         gender:_this.modifyForm.gender,
+                        avatar:_this.modifyForm.avatar,
                     }).then(function (response) {
                     if(response.data.rtnFlag=="9999"){//请求成功
-                        _this.$bdmsg({
-                            type:"toast",
-                            msgType:"success",
-                            message: '账号信息修改成功！'
-                        });
+                        _this.$message('账号信息修改成功！');
                         _this.modifyDgVisible=false;
-                        _this.initTable();
+                        _this.initForm();
                     }else if(response.data.rtnFlag=="1001"){//未登录
                         //_this.loginDgVisible=true;
                     }else{
@@ -406,21 +433,11 @@
                 this.current=1;
              },
 
-            handleAvatarSuccess(res, file) {
-                this.modifyForm.avatar = URL.createObjectURL(file.raw);
+            onSuccess(response, file, fileList) {
+                this.modifyForm.avatar=response.rtnData;
             },
-            beforeAvatarUpload(file) {
-                const isJPG = file.type === 'image/jpeg'||file.type === 'image/png';
-                const isLt2M = file.size / 1024 / 1024 < 2;
-
-                if (!isJPG) {
-                    this.$message.error('上传头像图片只能是 JPG 格式!');
-                }
-                if (!isLt2M) {
-                    this.$message.error('上传头像图片大小不能超过 2MB!');
-                }
-                return isJPG && isLt2M;
-            },
+            onError(err, file, fileList) {},
+            beforeUpload(file) {},
 
             pay:function(dealId){
                 const _this=this;

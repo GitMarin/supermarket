@@ -21,4 +21,8 @@ public interface IShopService extends IService<Shop> {
     MkplatWebModel getShopPage(Map<String,Object> map);
 
     MkplatWebModel modifyShopStatus(Map<String,Object> map);
+
+    MkplatWebModel modifyShop(Map<String,Object> map);
+
+
 }

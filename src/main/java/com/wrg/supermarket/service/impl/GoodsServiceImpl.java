@@ -94,7 +94,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         goods.setMarque(map.get("marque").toString());
         goods.setName(map.get("name").toString());
         //图片
-        goods.setCondensePicLink("img/1.png");
+        goods.setCondensePicLink(map.get("condensePicLink").toString());
 
         goods.setLastCommentTime(null);
         goods.setLastDealTime(null);

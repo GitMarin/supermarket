@@ -9,8 +9,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wrg.supermarket.component.JavaBeanUtil;
 import com.wrg.supermarket.component.MkplatWebModel;
 import com.wrg.supermarket.component.UUIDGenerator;
+import com.wrg.supermarket.entity.Account;
 import com.wrg.supermarket.entity.Shop;
 import com.wrg.supermarket.entity.User;
+import com.wrg.supermarket.mapper.AccountMapper;
 import com.wrg.supermarket.mapper.ShopMapper;
 import com.wrg.supermarket.mapper.UserMapper;
 import com.wrg.supermarket.service.ILoginService;
@@ -39,22 +41,24 @@ public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements I
     private UserMapper mapper;
     @Autowired
     private ShopMapper shopMapper;
-    @Override
-    public MkplatWebModel loginUser(String username,String password){
-        QueryWrapper<User> queryWrapper=Wrappers.query();
-        queryWrapper.eq("username",username).eq("password",password);
-        User data = mapper.selectOne(queryWrapper);
-        if(data==null) return MkplatWebModel.convertMetroPayWebModel(new MkplatException(PARAM_INVAILD));
-        else return MkplatWebModel.convertMetroPayWebModel(data);
-    }
+    @Autowired
+    private AccountMapper accountMapper;
 
     @Override
-    public MkplatWebModel loginShop(String username,String password){
-        QueryWrapper<Shop> queryWrapper=Wrappers.query();
-        queryWrapper.eq("username",username).eq("password",password);
-        Shop data = shopMapper.selectOne(queryWrapper);
-        if(data==null) return MkplatWebModel.convertMetroPayWebModel(new MkplatException(PARAM_INVAILD));
-        else return MkplatWebModel.convertMetroPayWebModel(data);
+    public MkplatWebModel login(String username, String password,String type){
+        QueryWrapper<Account> accountQueryWrapper = Wrappers.query();
+        accountQueryWrapper.eq("username",username).eq("password",password);
+        if(type.equals("shop"))accountQueryWrapper.eq("type",type);
+        else if(type.equals("user"))accountQueryWrapper.ne("type","shop");
+        Account account = accountMapper.selectOne(accountQueryWrapper);
+
+        if(account==null) return MkplatWebModel.convertMetroPayWebModel(new MkplatException(PARAM_INVAILD));
+        else {
+            Map<String,Object> result=new HashMap<>();
+            result.put("id",account.getId());
+            result.put("type",account.getType());
+            return MkplatWebModel.convertMetroPayWebModel(result);
+        }
     }
 
 
@@ -70,7 +74,7 @@ public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements I
         user.setFavoritesNumber(0);
         user.setShoppingCartNumber(0);
         user.setId(key);
-        user.setType("asf");
+        //user.setType("asf");
         //将年转化为年龄
         user.setAge(LocalDateTime.now().getYear()-Integer.parseInt(splitYear((String) map.get("year")))-1);
         //获取当前时间
@@ -79,6 +83,14 @@ public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements I
         user.setRegisterTime(currentDate);
         user.setAvatar("img/user01.jpg");
         save(user);
+
+        Account account = new Account();
+        account.setId(key);
+        account.setUsername(map.get("username").toString());
+        account.setPassword(map.get("password").toString());
+        account.setType("user");
+        accountMapper.insert(account);
+
         Map<String,Object> result = new HashMap<>();
         result.put("id",key);
         return MkplatWebModel.convertMetroPayWebModel(result);
@@ -101,27 +113,28 @@ public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements I
         shop.setRegisterTime(currentDate);
         shop.setPicLink("img/user01.jpg");
         shopMapper.insert(shop);
+
+        Account account = new Account();
+        account.setId(key);
+        account.setUsername(map.get("username").toString());
+        account.setPassword(map.get("password").toString());
+        account.setType("shop");
+        accountMapper.insert(account);
+
         Map<String,Object> result = new HashMap<>();
         result.put("id",key);
         return MkplatWebModel.convertMetroPayWebModel(result);
     }
 
     @Override
-    public MkplatWebModel testUsername(String username){
+    public MkplatWebModel testName(String username,String type){
         Map<String,Object> result = new HashMap<>();
-        QueryWrapper<User> queryWrapper=Wrappers.query();
+        QueryWrapper<Account> queryWrapper=Wrappers.query();
         queryWrapper.eq("username",username);
-        if(count(queryWrapper)>0)   result.put("result",false);
-        else result.put("result",true);
-        return MkplatWebModel.convertMetroPayWebModel(result);
-    }
+        if(type.equals("shop")) queryWrapper.eq("type","shop");
+        else if(type.equals("user")) queryWrapper.ne("type","shop");
 
-    @Override
-    public MkplatWebModel testShopName(String username){
-        Map<String,Object> result = new HashMap<>();
-        QueryWrapper<Shop> queryWrapper=Wrappers.query();
-        queryWrapper.eq("username",username);
-        if(shopMapper.selectCount(queryWrapper)>0)   result.put("result",false);
+        if(accountMapper.selectCount(queryWrapper)>0)   result.put("result",false);
         else result.put("result",true);
         return MkplatWebModel.convertMetroPayWebModel(result);
     }

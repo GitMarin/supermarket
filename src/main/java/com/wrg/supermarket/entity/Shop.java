@@ -47,8 +47,6 @@ public class Shop  implements Serializable {
 
     private String status;
 
-    private String username;
-    private String password;
     private String remark;
     private LocalDateTime registerTime;
     private LocalDateTime lastAccessTime;
@@ -109,22 +107,6 @@ public class Shop  implements Serializable {
 
     public void setPicLink(String picLink) {
         this.picLink = picLink;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getRemark() {

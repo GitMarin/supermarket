@@ -14,12 +14,12 @@ import org.springframework.web.servlet.config.annotation.*;
 
 //@EnableWebMvc
 @Configuration
-public class MyMvcConfig extends WebMvcConfigurationSupport {
+public class MyMvcConfig  implements WebMvcConfigurer{
     @Override
-    protected void addInterceptors(InterceptorRegistry registry) {
-        //super.addInterceptors(registry);
-        registry.addInterceptor(new LoginHandlerInterceptor()).addPathPatterns("/**")
-                .excludePathPatterns("/login.html","/","/login");
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoginHandlerInterceptor())
+                .addPathPatterns("/**")
+                .excludePathPatterns("/","/login");
 //        ,
 //        "/js/vue.js","/js/index.js","/js/axios.min.js","/js/index.js",
 //                "/js/vuescroll.js","/js/vuescroll-native.js","/js/vuescroll-slide.js",
@@ -27,8 +27,7 @@ public class MyMvcConfig extends WebMvcConfigurationSupport {
     }
 
     @Override
-    protected void addViewControllers(ViewControllerRegistry registry) {
-        //super.addViewControllers(registry);
+    public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("login");
         registry.addViewController("/login.html").setViewName("login");
         registry.addViewController("/shop.html").setViewName("shop");
@@ -51,5 +50,10 @@ public class MyMvcConfig extends WebMvcConfigurationSupport {
 //                .addResourceLocations("classpath:/META-INF/resources/");
 //        registry.addResourceHandler("/webjars/**")
 //                .addResourceLocations("classpath:/META-INF/resources/webjars/");
+
+        registry.addResourceHandler("/image/**")
+                .addResourceLocations("file:C:/inetpub/wwwroot/image/");
     }
+
+
 }
