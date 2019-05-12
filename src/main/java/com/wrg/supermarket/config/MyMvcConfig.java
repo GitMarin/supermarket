@@ -19,11 +19,9 @@ public class MyMvcConfig  implements WebMvcConfigurer{
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new LoginHandlerInterceptor())
                 .addPathPatterns("/**")
-                .excludePathPatterns("/","/login");
-//        ,
-//        "/js/vue.js","/js/index.js","/js/axios.min.js","/js/index.js",
-//                "/js/vuescroll.js","/js/vuescroll-native.js","/js/vuescroll-slide.js",
-//                "/styles/bootstrap.min.css","/styles/index.css","/styles/vuescroll.css"
+                .excludePathPatterns("/","/login", "/js/vue.js","/js/index.js","/js/axios.min.js","/js/msg.js",
+                        "/js/vuescroll.js","/js/vuescroll-native.js","/js/vuescroll-slide.js","/js/jquery-3.2.1.min.js",
+                        "/styles/bootstrap.min.css","/styles/index.css","/styles/vuescroll.css");
     }
 
     @Override

@@ -7,19 +7,16 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wrg.supermarket.component.JavaBeanUtil;
 import com.wrg.supermarket.component.MkplatWebModel;
-import com.wrg.supermarket.entity.Goods;
-import com.wrg.supermarket.entity.GoodsType;
-import com.wrg.supermarket.entity.ShopGoods;
-import com.wrg.supermarket.mapper.GoodsMapper;
-import com.wrg.supermarket.mapper.GoodsTypeMapper;
-import com.wrg.supermarket.mapper.ShopGoodsMapper;
-import com.wrg.supermarket.mapper.ShopMapper;
+import com.wrg.supermarket.component.UUIDGenerator;
+import com.wrg.supermarket.entity.*;
+import com.wrg.supermarket.mapper.*;
 import com.wrg.supermarket.service.IShopGoodsService;
 import com.wrg.supermarket.utils.enums.PlatErrorCode;
 import com.wrg.supermarket.utils.exception.MkplatException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -42,6 +39,8 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
     private GoodsTypeMapper goodsTypeMapper;
     @Autowired
     private ShopMapper shopMapper;
+    @Autowired
+    private ImageMapper imageMapper;
     @Override
     public MkplatWebModel getShopGoodsPage(Map<String,Object> map){
         int current=Integer.parseInt(map.get("current").toString());
@@ -104,6 +103,9 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
     public MkplatWebModel addShopGoods(Map<String,Object> map){
         String shopId = map.get("shopId").toString();
         String goodsId = map.get("id").toString();
+        LocalDateTime currentDate=LocalDateTime.now();
+
+
         QueryWrapper<ShopGoods> queryWrapper= Wrappers.query();
         queryWrapper.eq("shop_id",shopId).eq("goods_id",goodsId);
         if(count(queryWrapper)>=1)  return MkplatWebModel.convertMetroPayWebModel(new MkplatException(PlatErrorCode.PARAM_INVAILD));
@@ -120,11 +122,22 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         shopGoods.setLastCommentTime(null);
         shopGoods.setLastDealTime(null);
         shopGoods.setLastFavoritesTime(null);
-        LocalDateTime currentDate=LocalDateTime.now();
+
         shopGoods.setLastOnlineTime(currentDate);
         shopGoods.setCreateTime(currentDate);
         save(shopGoods);
 
+        List<String> fileList= (List<String>) map.get("fileList");
+        for(int i=0;i<fileList.size();i++){
+            String key= UUIDGenerator.generate();
+            Image image = new Image();
+            image.setId(key);
+            image.setGoodsId(goodsId);
+            image.setShopId(shopId);
+            image.setUrl(fileList.get(i));
+            image.setCreateTime(currentDate);
+            imageMapper.insert(image);
+        }
         return MkplatWebModel.success();
     }
 
@@ -182,6 +195,7 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         return MkplatWebModel.success();
     }
 
+    @Override
     public MkplatWebModel getOneShopGoods(Map<String,Object> map){
         String goodsId = map.get("goodsId").toString();
         String shopId = map.get("shopId").toString();
@@ -192,16 +206,27 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         Map<String,Object> resultMap = JavaBeanUtil.transBean2Map(shopGoods);
         Goods goods = goodsMapper.selectById(goodsId);
         resultMap.put("goodsName",goods.getName());
+
         resultMap.put("originalPrice",goods.getPrice());
-        resultMap.put("picLink",goods.getCondensePicLink());
         resultMap.put("brandName",goods.getBrandName());
         resultMap.put("marque",goods.getMarque());
         resultMap.put("shopName",shopMapper.selectById(shopId).getName());
         resultMap.put("typeName",goodsTypeMapper.selectById(goods.getTypeId()).getName());
         resultMap.put("num",1);
+
+        List<String> picList = new ArrayList<>();
+        picList.add(goods.getCondensePicLink());
+
+        QueryWrapper<Image> imageQueryWrapper = Wrappers.query();
+        imageQueryWrapper.eq("goods_id",goodsId).eq("shop_id",shopId);
+        List<Image> imageList = imageMapper.selectList(imageQueryWrapper);
+        for(int i= 0;i<imageList.size();i++)    picList.add(imageList.get(i).getUrl());
+
+        resultMap.put("picList",picList);
         return MkplatWebModel.convertMetroPayWebModel(resultMap);
     }
 
+    @Override
     public MkplatWebModel modifyShopGoodsStatus(Map<String,Object> map){
         UpdateWrapper<ShopGoods> updateWrapper = Wrappers.update();
         updateWrapper.eq("shop_id",map.get("shopId").toString())
@@ -210,6 +235,43 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         update(updateWrapper);
         return MkplatWebModel.success();
     }
+
+    @Override
+    public MkplatWebModel getShopGoodsPic(Map<String,Object> map){
+        String goodsId = map.get("goodsId").toString();
+        String shopId = map.get("shopId").toString();
+        QueryWrapper<Image> imageQueryWrapper = Wrappers.query();
+        imageQueryWrapper.eq("goods_id",goodsId).eq("shop_id",shopId);
+        List<Image> imageList=imageMapper.selectList(imageQueryWrapper);
+        return MkplatWebModel.convertMetroPayWebModel(imageList);
+    }
+
+    @Override
+    public MkplatWebModel addOneImage(Map<String,Object> map){
+        String key= UUIDGenerator.generate();
+        LocalDateTime currentDate=LocalDateTime.now();
+
+        Image image = new Image();
+        image.setUrl(map.get("url").toString());
+        image.setShopId(map.get("shopId").toString());
+        image.setGoodsId(map.get("goodsId").toString());
+        image.setId(key);
+        image.setCreateTime(currentDate);
+        imageMapper.insert(image);
+        return MkplatWebModel.success();
+    }
+
+    @Override
+    public MkplatWebModel deleteShopGoodsPic(Map<String,Object> map){
+        imageMapper.deleteById(map.get("imageId").toString());
+        String url=map.get("url").toString();
+        File file=new File("C:/inetpub/wwwroot/image/"+url.substring(url.lastIndexOf("/")+1));
+        file.delete();
+        return MkplatWebModel.success();
+    }
+
+
+
     /**
      * @Author Wang Rengang
      * @Description 商品各状态数据统计
@@ -244,6 +306,11 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         queryWrapper4.eq("status","prepared").eq("shop_id",id);
         int prepared=count(queryWrapper4);
         dataStatisticsMap.put("prepared",prepared);
+        //冻结数据统计
+        QueryWrapper<ShopGoods> queryWrapper5= Wrappers.query();
+        queryWrapper5.eq("status","disabled").eq("shop_id",id);
+        int disabled=count(queryWrapper5);
+        dataStatisticsMap.put("disabled",disabled);
         return dataStatisticsMap;
     }
 

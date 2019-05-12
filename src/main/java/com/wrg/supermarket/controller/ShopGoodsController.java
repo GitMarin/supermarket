@@ -43,6 +43,7 @@ public class ShopGoodsController {
     public MkplatWebModel addShopGoods(@RequestBody Map<String,Object> map){
         Map<String,Object> form = (Map<String, Object>) map.get("form");
         form.put("shopId",map.get("shopId"));
+        form.put("fileList",map.get("fileList"));
         return iShopGoodsService.addShopGoods(form);
     }
 
@@ -75,6 +76,28 @@ public class ShopGoodsController {
     public MkplatWebModel modifyShopGoodsStatus(@RequestBody Map<String,Object> map){
         return iShopGoodsService.modifyShopGoodsStatus(map);
     }
+
+
+    @ResponseBody
+    @RequestMapping("/getShopGoodsPic")
+    public MkplatWebModel getShopGoodsPic(@RequestBody Map<String,Object> map){
+        return iShopGoodsService.getShopGoodsPic(map);
+    }
+
+    @ResponseBody
+    @RequestMapping("/addOneImage")
+    public MkplatWebModel addOneImage(@RequestBody Map<String,Object> map){
+        return iShopGoodsService.addOneImage(map);
+    }
+
+
+
+    @ResponseBody
+    @RequestMapping("/deleteShopGoodsPic")
+    public MkplatWebModel deleteShopGoodsPic(@RequestBody Map<String,Object> map){
+        return iShopGoodsService.deleteShopGoodsPic(map);
+    }
+
 
 
 

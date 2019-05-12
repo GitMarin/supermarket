@@ -31,4 +31,6 @@ public interface IDealService extends IService<Deal> {
 
     MkplatWebModel addDealBatch(Map<String,Object> map);
 
+    MkplatWebModel shopRefundDeal(Map<String,Object> map);
+
 }

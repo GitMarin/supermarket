@@ -37,17 +37,22 @@
     <el-container>
         <el-header  style="background-color: #b3d7ff">
             <el-row height="70px">
-                <el-col :span="14">
+                <el-col :span="20">
                     <img src="img/logo.png" style="width: 50px;height: 50px;" alt="logo" @click="logoClick">
                 </el-col>
-                <el-col :span="7">
-                    <el-badge :value="shoppingCartNumber" class="item" style="float: right;margin-top: 10px">
+                <el-col :span="1">
+                    <el-badge :value="shoppingCartNumber" :hidden="this.shoppingCartNumber=='0'" class="item" style="float: right;margin-top: 10px">
                         <img src="img/shoppingCart.png" style="width: 40px;height: 40px;" @click="goShoppingCart">
+                    </el-badge>
+                </el-col>
+                <el-col :span="1">
+                    <el-badge :value="newMessageNumber" :hidden="this.newMessageNumber=='0'" class="item" style="float: right;margin-top: 10px">
+                        <img src="img/message.png" style="width: 40px;height: 40px;" @click="openMessage">
                     </el-badge>
                 </el-col>
                 <!--存放头像等信息-->
 
-                <el-col :span="3">
+                <el-col :span="2">
                     <el-popover
                             placement="right-start"
                             width="200"
@@ -127,6 +132,16 @@
             </div>
         </el-main>
     </el-container>
+
+    <el-dialog title="信息展示" :visible.sync="messageDgVisible" width="650px" height="650px">
+        <div v-for="v in messageData">
+            <p>
+                <el-tag v-if="v.status=='new'" type="success">新</el-tag>
+                {{v.message}}
+                <el-button size="mini" type="danger" icon="el-icon-delete" @click="openDeleteMessage(v.id)" style="float: right"></el-button>
+            </p>
+        </div>
+    </el-dialog>
 </div>
     <script>
         new Vue({
@@ -138,6 +153,9 @@
                     sign:null,
                     avatar:null,
                     shoppingCartNumber:0,
+                    newMessageNumber:0,
+                    messageDgVisible:false,
+                    messageData:[],
 
 
                     shopId:null,
@@ -230,6 +248,78 @@
                             type: 'info',
                             message: '已取消'
                         });
+                    });
+                },
+                getNewMessageNumber:function(){
+                    const _this=this;
+                    axios.post('http://'+window.location.host+'/message/getNewMessageNumber',{latterId:_this.userId})
+                        .then(function (response) {
+                            if(response.data.rtnFlag=="9999"){//请求成功
+                                _this.newMessageNumber=response.data.rtnData;
+                            }else if(response.data.rtnFlag=="1001"){//未登录
+                                //_this.loginDgVisible=true;
+                            }else{}
+                        }).catch(function (error) {
+                        // handle error
+                        console.log(error);
+                    }).then(function () {
+                        // always executed
+                    });
+                },
+
+                openMessage:function(){
+                    this.messageDgVisible=true;
+                    this.getMessage();
+                },
+                getMessage:function(){
+                    const _this=this;
+                    axios.post('http://'+window.location.host+'/message/getMessage',{latterId:_this.userId,type:"user"})
+                        .then(function (response) {
+                            if(response.data.rtnFlag=="9999"){//请求成功
+                                _this.messageData=response.data.rtnData;
+                                _this.getNewMessageNumber();
+                            }else if(response.data.rtnFlag=="1001"){//未登录
+                                //_this.loginDgVisible=true;
+                            }else{}
+                        }).catch(function (error) {
+                        // handle error
+                        console.log(error);
+                    }).then(function () {
+                        // always executed
+                    });
+                },
+                openDeleteMessage:function(id){
+                    this.$confirm('删除该信息, 是否继续?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.deleteMessage(id);
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '已取消删除'
+                        });
+                    });
+                },
+                deleteMessage:function(id){
+                    const _this=this;
+                    axios.post('http://'+window.location.host+'/message/deleteMessage',{id:id})
+                        .then(function (response) {
+                            if(response.data.rtnFlag=="9999"){//请求成功
+                                _this.getMessage();
+                                _this.$message({
+                                    type: 'success',
+                                    message: '删除成功!'
+                                });
+                            }else if(response.data.rtnFlag=="1001"){//未登录
+                                //_this.loginDgVisible=true;
+                            }else{}
+                        }).catch(function (error) {
+                        // handle error
+                        console.log(error);
+                    }).then(function () {
+                        // always executed
                     });
                 },
 
@@ -334,6 +424,7 @@
                             shopId:_this.shopId,goodsId:goodsId})
                             .then(function (response) {
                                 if(response.data.rtnFlag=="9999"){//请求成功
+                                    _this.getShoppingCartCount();
                                     _this.$message({
                                         type: 'success',
                                         message: '加购成功！'
@@ -374,6 +465,7 @@
                 _this.initShopGoodsData();
                 _this.getParentGoodsType();
                 _this.getShoppingCartCount();
+                _this.getNewMessageNumber();
             },
         });
     </script>

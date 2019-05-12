@@ -55,4 +55,11 @@ public class DealController {
         return dealService.addDealBatch(map);
     }
 
+
+    @ResponseBody
+    @RequestMapping("/shopRefundDeal")
+    public MkplatWebModel shopRefundDeal(@RequestBody Map<String,Object> map){
+        return dealService.shopRefundDeal(map);
+    }
+
 }

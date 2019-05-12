@@ -38,17 +38,23 @@
     <el-container>
         <el-header  style="background-color: #b3d7ff">
             <el-row height="70px">
-                <el-col :span="14">
+                <el-col :span="20">
                     <img src="img/logo.png" style="width: 50px;height: 50px;" alt="logo" @click="logoClick">
                 </el-col>
-                <el-col :span="7">
-                    <el-badge :value="shoppingCartNumber" class="item" style="float: right;margin-top: 10px">
-                        <img src="image/shoppingCart.png" style="width: 40px;height: 40px;" @click="goShoppingCart">
+                <el-col :span="1">
+                    <el-badge :value="shoppingCartNumber" :hidden="this.shoppingCartNumber=='0'" class="item" style="float: right;margin-top: 10px">
+                        <img src="img/shoppingCart.png" style="width: 40px;height: 40px;" @click="goShoppingCart">
+                    </el-badge>
+                </el-col>
+
+                <el-col :span="1">
+                    <el-badge :value="newMessageNumber" :hidden="this.newMessageNumber=='0'" class="item" style="float: right;margin-top: 10px">
+                        <img src="img/message.png" style="width: 40px;height: 40px;" @click="openMessage">
                     </el-badge>
                 </el-col>
                 <!--存放头像等信息-->
 
-                <el-col :span="3">
+                <el-col :span="2">
                     <el-popover
                             placement="right-start"
                             width="200"
@@ -78,15 +84,15 @@
             </div><br>
             <!--交易列表-->
             <div style="width:90% ; margin: auto">
-                <el-tabs @tab-click="handleTabClick">
-                    <el-tab-pane label="全部" name="all"></el-tab-pane>
-                    <el-tab-pane label="待付款" name="waitPay"></el-tab-pane>
-                    <el-tab-pane label="待发货" name="waitSend"></el-tab-pane>
-                    <el-tab-pane label="待收货" name="waitConfirm"></el-tab-pane>
-                    <el-tab-pane label="待评价" name="waitComment"></el-tab-pane>
-                    <el-tab-pane label="待退款" name="waitRefund"></el-tab-pane>
-                    <el-tab-pane label="已退款" name="refund"></el-tab-pane>
-                    <el-tab-pane label="完成" name="over"></el-tab-pane>
+                <el-tabs @tab-click="handleTabClick" v-model="activeDealName">
+                    <el-tab-pane :label="tabPane.all" name="all"></el-tab-pane>
+                    <el-tab-pane :label="tabPane.waitPay" name="waitPay"></el-tab-pane>
+                    <el-tab-pane :label="tabPane.waitSend" name="waitSend"></el-tab-pane>
+                    <el-tab-pane :label="tabPane.waitConfirm" name="waitConfirm"></el-tab-pane>
+                    <el-tab-pane :label="tabPane.waitComment" name="waitComment"></el-tab-pane>
+                    <el-tab-pane :label="tabPane.waitRefund" name="waitRefund"></el-tab-pane>
+                    <el-tab-pane :label="tabPane.refund" name="refund"></el-tab-pane>
+                    <el-tab-pane :label="tabPane.over" name="over"></el-tab-pane>
                 </el-tabs>
                 <el-table border empty-text=" " height="50px" style="width: 100%">
                     <el-table-column label="宝贝" min-width="40%"></el-table-column>
@@ -101,21 +107,23 @@
                             <el-col :span="7"><span>交易单号:{{t.dealId}}</span></el-col>
                             <el-col :span="4"><span>超市名:{{t.shopName}}</span></el-col>
                             <el-col :span="2">状态:
-                                <el-tag v-if="t.status == 'waitPay'">待付款</el-tag>
+                                <el-tag type="success" v-if="t.status == 'waitPay'">待付款</el-tag>
                                 <el-tag v-if="t.status == 'waitSend'">待发货</el-tag>
                                 <el-tag v-if="t.status == 'waitConfirm'">待收货</el-tag>
-                                <el-tag v-if="t.status == 'waitComment'">待评价</el-tag>
-                                <el-tag v-if="t.status == 'waitRefund'">待退款</el-tag>
-                                <el-tag v-if="t.status == 'over'">完成</el-tag>
+                                <el-tag type="warning" v-if="t.status == 'waitComment'">待评价</el-tag>
+                                <el-tag type="danger" v-if="t.status == 'waitRefund'">待退款</el-tag>
+                                <el-tag type="info" v-if="t.status == 'refund'">已退款</el-tag>
+                                <el-tag type="info" v-if="t.status == 'over'">完成</el-tag>
                             </el-col>
                             <el-col :span="3">交易总额:￥<span style="font-size: 18px">{{t.dealPrice}}</span>元</el-col>
                             <el-col :span="3">
                                 <el-button-group>
-                                    <el-button size="small" v-if="t.status == 'waitPay'" type="primary" @click="openPay(t.dealId)">付款</el-button>
+                                    <el-button size="small" v-if="t.status == 'waitPay'" type="primary" @click="openPay(t.dealId,t.shopId)">付款</el-button>
                                     <el-button size="small" v-if="t.status == 'waitConfirm'" type="primary" @click="openConfirm(t.dealId)">收货</el-button>
                                     <el-button size="small" v-if="t.status == 'waitComment'" type="success" @click="openComment(t.dealId)">评价</el-button>
-                                    <el-button size="small" v-if="t.status == 'waitSend'" type="primary">提醒发货</el-button>
-                                    <el-button size="small" v-if="t.status != 'waitPay' && t.status != 'over'" type="warning">退款</el-button>
+                                    <el-button size="small" v-if="t.status == 'waitSend'" type="primary" @click="openWarn(t.dealId,t.shopId)">提醒发货</el-button>
+                                    <el-button size="small" v-if="t.status == 'waitSend' || t.status == 'waitConfirm'" type="warning" @click="openRefund(t.dealId,t.shopId)">退款</el-button>
+                                    <el-button size="small" v-if="t.status == 'waitRefund'" type="warning" @click="openForceRefund(t.dealId,t.shopId)">强制退款</el-button>
                                     <el-button size="small" v-if="t.status == 'waitPay'" type="danger" @click="openDelete(t.dealId)">撤销</el-button>
                                 </el-button-group>
                             </el-col>
@@ -186,6 +194,16 @@
         </div>
     </el-dialog>
 
+    <el-dialog title="信息展示" :visible.sync="messageDgVisible" width="650px" height="650px">
+        <div v-for="v in messageData">
+            <p>
+                <el-tag v-if="v.status=='new'" type="success">新</el-tag>
+                {{v.message}}
+                <el-button size="mini" type="danger" icon="el-icon-delete" @click="openDeleteMessage(v.id)" style="float: right"></el-button>
+            </p>
+        </div>
+    </el-dialog>
+
 </div>
 </body>
 <script src="js/vue.js"></script>
@@ -210,6 +228,9 @@
             return{
 
                 shoppingCartNumber:0,
+                newMessageNumber:0,
+                messageDgVisible:false,
+                messageData:[],
                 //账户信息
                 userId: null,
                 nickname: null,
@@ -225,6 +246,17 @@
                 tableData:[],
                 status:null,
 
+                activeDealName:"all",
+                tabPane:{
+                    all:"全部",
+                    waitPay:"待付款",
+                    waitSend:"待发货",
+                    waitConfirm:"待收货",
+                    waitComment:"待评价",
+                    waitRefund:"待退款",
+                    refund:"已退款",
+                    over:"完成",
+                },
 
                 //修改账号弹窗参数
                 modifyDgTitle:null,
@@ -311,6 +343,78 @@
                     });
                 });
             },
+            getNewMessageNumber:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/getNewMessageNumber',{latterId:_this.userId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.newMessageNumber=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            openMessage:function(){
+                this.messageDgVisible=true;
+                this.getMessage();
+            },
+            getMessage:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/getMessage',{latterId:_this.userId,type:"user"})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.messageData=response.data.rtnData;
+                            _this.getNewMessageNumber();
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            openDeleteMessage:function(id){
+                this.$confirm('删除该信息, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.deleteMessage(id);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
+            deleteMessage:function(id){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/deleteMessage',{id:id})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.getMessage();
+                            _this.$message({
+                                type: 'success',
+                                message: '删除成功!'
+                            });
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
 
 
             initForm:function(){
@@ -346,8 +450,16 @@
                 axios.post('http://'+window.location.host+'/deal/getDealPage',{size:_this.size,current:_this.current,userId:_this.userId,status:_this.status})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
-                            _this.tableData=response.data.rtnData;
+                            _this.tableData=response.data.rtnData.resultList;
                             _this.total=response.data.total;
+                            _this.tabPane.all="全部("+response.data.rtnData.dataStatistics.all+")";
+                            _this.tabPane.waitPay="待付款("+response.data.rtnData.dataStatistics.waitPay+")";
+                            _this.tabPane.waitSend="待发货("+response.data.rtnData.dataStatistics.waitSend+")";
+                            _this.tabPane.waitConfirm="待收货("+response.data.rtnData.dataStatistics.waitConfirm+")";
+                            _this.tabPane.waitComment="待评价("+response.data.rtnData.dataStatistics.waitComment+")";
+                            _this.tabPane.waitRefund="待退款("+response.data.rtnData.dataStatistics.waitRefund+")";
+                            _this.tabPane.refund="已退款("+response.data.rtnData.dataStatistics.refund+")";
+                            _this.tabPane.over="完成("+response.data.rtnData.dataStatistics.over+")";
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
@@ -439,24 +551,72 @@
             onError(err, file, fileList) {},
             beforeUpload(file) {},
 
-            pay:function(dealId){
+            openWarn:function(dealId,shopId){
+                this.$confirm('确认提醒发货?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.addMessage("请尽快发货！",dealId,"deliverGoods",shopId);
+                    this.$message({
+                        type: 'success',
+                        message: '提醒成功!'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+
+            addMessage:function(message,id,type,shopId){
                 const _this=this;
-                axios.post('http://'+window.location.host+'/deal/changeDealStatus',{dealId:dealId,status:"waitSend"})
+                axios.post('http://'+window.location.host+'/message/addMessage',{formerId:_this.userId,latterId:shopId
+                    ,relatedId:id,context:message,type:type})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            openComment:function(dealId){
+                this.$prompt('请输入评价', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                }).then(({ value }) => {
+                    this.comment(dealId,value);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+            comment:function(dealId,value){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/deal/changeDealStatus',{dealId:dealId,status:"over",comment:value})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.initTable();
                             _this.$message({
-                                message: '付款成功',
+                                message: '评价成功',
                                 type: 'success'
                             });
-
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
                             _this.$bdmsg({
                                 type:"toast",
                                 msgType:"error",
-                                message: '付款'+'失败！'+response.data.rtnMsg
+                                message: '评价'+'失败！'+response.data.rtnMsg
                             });
                         }
                     }).catch(function (error) {
@@ -466,12 +626,82 @@
                     // always executed
                 });
             },
+            openForceRefund:function(dealId){
+                this.$prompt('请求系统管理员强制退款，请输入退款理由', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                }).then(({ value }) => {
+                    this.addMessage(value,dealId,"adminRefund","admin");
+                    this.$message({
+                        message: '操作成功，等待管理员退款！',
+                        type: 'success'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+            openRefund:function(dealId,shopId){
+                this.$prompt('请输入退款理由', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                }).then(({ value }) => {
+                    this.refund(dealId);
+                    this.addMessage(value,dealId,"refund",shopId);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消退款'
+                    });
+                });
+            },
+            refund:function(dealId){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/deal/changeDealStatus',{dealId:dealId,status:"waitRefund"})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.initTable();
+                            _this.$message({
+                                message: '操作成功，等待超市退款！',
+                                type: 'success'
+                            });
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '退款'+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            openConfirm:function(dealId){
+                this.$confirm('确认收货?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.confirm(dealId);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
             confirm:function(dealId){
                 const _this=this;
                 axios.post('http://'+window.location.host+'/deal/changeDealStatus',{dealId:dealId,status:"waitComment"})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
-
                             _this.initTable();
                             _this.$message({
                                 message: '收货成功',
@@ -493,41 +723,6 @@
                     // always executed
                 });
             },
-            openComment:function(dealId){
-                this.$prompt('请输入评价', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                }).then(({ value }) => {
-                    this.$message({
-                        type: 'success',
-                        message: '评价成功'
-                    });
-                    this.comment(dealId,value);
-                }).catch(() => {
-                    this.$message({
-                        type: 'info',
-                        message: '取消输入'
-                    });
-                });
-            },
-            openConfirm:function(dealId){
-                this.$confirm('确认收货?', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning'
-                }).then(() => {
-                    this.confirm(dealId);
-                    this.$message({
-                        type: 'success',
-                        message: '收货成功!'
-                    });
-                }).catch(() => {
-                    this.$message({
-                        type: 'info',
-                        message: '已取消收货'
-                    });
-                });
-            },
             openDelete:function(dealId){
                 this.$confirm('此操作将撤销该交易, 是否继续?', '提示', {
                     confirmButtonText: '确定',
@@ -535,60 +730,11 @@
                     type: 'warning'
                 }).then(() => {
                     this.delete(dealId);
-                    this.$message({
-                        type: 'success',
-                        message: '撤销成功!'
-                    });
                 }).catch(() => {
                     this.$message({
                         type: 'info',
-                        message: '已取消撤销'
+                        message: '已取消'
                     });
-                });
-            },
-            openPay:function(dealId){
-                this.$confirm('确认付款?', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning'
-                }).then(() => {
-                    this.pay(dealId);
-                    this.$message({
-                        type: 'success',
-                        message: '付款成功!'
-                    });
-                }).catch(() => {
-                    this.$message({
-                        type: 'info',
-                        message: '已取消付款'
-                    });
-                });
-            },
-            comment:function(dealId,value){
-                const _this=this;
-                axios.post('http://'+window.location.host+'/deal/changeDealStatus',{dealId:dealId,status:"over",comment:value})
-                    .then(function (response) {
-                        if(response.data.rtnFlag=="9999"){//请求成功
-
-                            _this.initTable();
-                            _this.$message({
-                                message: '收货成功',
-                                type: 'success'
-                            });
-                        }else if(response.data.rtnFlag=="1001"){//未登录
-                            //_this.loginDgVisible=true;
-                        }else{
-                            _this.$bdmsg({
-                                type:"toast",
-                                msgType:"error",
-                                message: '评价'+'失败！'+response.data.rtnMsg
-                            });
-                        }
-                    }).catch(function (error) {
-                    // handle error
-                    console.log(error);
-                }).then(function () {
-                    // always executed
                 });
             },
             delete:function(dealId){
@@ -596,7 +742,6 @@
                 axios.get('http://'+window.location.host+'/deal/deleteDeal',{params:{dealId:dealId}})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
-
                             _this.initTable();
                             _this.$message({
                                 message: '撤销成功',
@@ -618,6 +763,49 @@
                     // always executed
                 });
             },
+            openPay:function(dealId,shopId){
+                this.$confirm('确认付款?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.pay(dealId);
+                    this.addMessage("该订单已付款，请尽快发货！",dealId,"dealPay",shopId);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+            pay:function(dealId){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/deal/changeDealStatus',{dealId:dealId,status:"waitSend"})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.initTable();
+                            _this.$message({
+                                message: '付款成功',
+                                type: 'success'
+                            });
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '付款'+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+
         },
         mounted: function() {
             const _this=this;
@@ -626,6 +814,7 @@
             _this.initForm();
             _this.initTable();
             _this.getShoppingCartCount();
+            _this.getNewMessageNumber();
         },
     });
 </script>

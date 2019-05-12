@@ -117,10 +117,11 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         Goods goods = new Goods();
         goods.setTypeId(map.get("typeId").toString());
         goods.setBrandName(map.get("brandName").toString());
-        goods.setPrice(new BigDecimal((String) map.get("price")));
+        goods.setPrice(new BigDecimal(map.get("price").toString()));
         goods.setMarque(map.get("marque").toString());
         goods.setName(map.get("name").toString());
         goods.setId(map.get("id").toString());
+        goods.setCondensePicLink(map.get("condensePicLink").toString());
         LocalDateTime currentDate=LocalDateTime.now();
         goods.setModifyTime(currentDate);
         updateById(goods);

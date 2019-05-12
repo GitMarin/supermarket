@@ -34,14 +34,14 @@
         .avatar-uploader-icon {
             font-size: 28px;
             color: #8c939d;
-            width: 146px;
-            height: 146px;
-            line-height: 178px;
+            width: 150px;
+            height: 150px;
+            line-height: 150px;
             text-align: center;
         }
         .avatar {
-            width: 146px;
-            height: 146px;
+            width: 150px;
+            height: 150px;
             display: block;
             border-radius: 5px;
         }
@@ -54,8 +54,13 @@
         <el-header style="background-color: #5bb2ff">
             <!--存放头像等信息-->
             <el-row height="70px">
-                <el-col :span="21">
+                <el-col :span="18">
                     <label style="font-size: 25px;font-family: 仿宋;margin-top: 10px;font-weight: bold">超市管理</label>
+                </el-col>
+                <el-col :span="3">
+                    <el-badge :value="newMessageNumber" :hidden="this.newMessageNumber=='0'" class="item" style="float: right;margin-top: 10px">
+                        <img src="img/message.png" style="width: 40px;height: 40px;" @click="openMessage">
+                    </el-badge>
                 </el-col>
                 <el-col :span="3">
                     <el-popover
@@ -100,6 +105,7 @@
                             <el-tab-pane :label="tabMap.offline" name="offline"></el-tab-pane>
                             <el-tab-pane :label="tabMap.soldOut" name="soldOut"></el-tab-pane>
                             <el-tab-pane :label="tabMap.prepared" name="prepared"></el-tab-pane>
+                            <el-tab-pane :label="tabMap.disabled" name="disabled"></el-tab-pane>
                         </el-tabs>
                         <el-card  style="margin-top: -16px;height: 80px">
                             <el-form-item label="商品名">
@@ -136,6 +142,7 @@
                                     <el-tag type="info" v-if="scope.row.status == 'offline'">已下架</el-tag>
                                     <el-tag type="danger" v-if="scope.row.status == 'soldOut'">售罄</el-tag>
                                     <el-tag type="success" v-if="scope.row.status == 'prepared'">准备中</el-tag>
+                                    <el-tag type="danger" v-if="scope.row.status == 'disabled'">冻结</el-tag>
                                 </template>
                             </el-table-column>
                             <el-table-column label="价格" width="180">
@@ -148,12 +155,14 @@
                             </el-table-column>
                             <el-table-column prop="dealNumber" label="交易量" width="80">
                             </el-table-column>
-                            <el-table-column label="操作" width="180">
+                            <el-table-column label="操作" width="200">
                                 <template slot-scope="scope">
                                     <el-button-group>
-                                        <el-button  @click="openShopGoodsModify(scope.row)" v-if="scope.row.status != 'online'" size="small">修改</el-button>
-                                        <el-button  @click="onlineShopGoods(scope.row)" v-if="scope.row.status == 'prepared'" size="small">上架</el-button>
-                                        <el-button  @click="offlineShopGoods(scope.row)" v-if="scope.row.status == 'online'" size="small">下架</el-button>
+                                        <el-button  @click="openShopGoodsModify(scope.row)" v-if="scope.row.status != 'online'" size="mini">修改</el-button>
+                                        <el-button @click="openPic(scope.row.goodsId)" v-if="scope.row.status != 'online'" size="mini">图片</el-button>
+                                        <el-button @click="openEnabled(scope.row.goodsId)" v-if="scope.row.status == 'disabled'" size="mini">解冻</el-button>
+                                        <el-button  @click="onlineShopGoods(scope.row)" v-if="scope.row.status == 'prepared'" size="mini">上架</el-button>
+                                        <el-button  @click="offlineShopGoods(scope.row)" v-if="scope.row.status == 'online'" size="mini">下架</el-button>
                                     </el-button-group>
                                 </template>
                             </el-table-column>
@@ -172,14 +181,14 @@
 
                 <div v-if="this.activeIndex=='2'">
                     <el-tabs v-model="activeDealName" @tab-click="handleDealTabClick">
-                        <el-tab-pane label="全部" name="all"></el-tab-pane>
-                        <el-tab-pane label="待付款" name="waitPay"></el-tab-pane>
-                        <el-tab-pane label="待发货" name="waitSend"></el-tab-pane>
-                        <el-tab-pane label="待收货" name="waitConfirm"></el-tab-pane>
-                        <el-tab-pane label="待评价" name="waitComment"></el-tab-pane>
-                        <el-tab-pane label="待退款" name="waitRefund"></el-tab-pane>
-                        <el-tab-pane label="已退款" name="refund"></el-tab-pane>
-                        <el-tab-pane label="完成" name="over"></el-tab-pane>
+                        <el-tab-pane :label="tabPane.all" name="all"></el-tab-pane>
+                        <el-tab-pane :label="tabPane.waitPay" name="waitPay"></el-tab-pane>
+                        <el-tab-pane :label="tabPane.waitSend" name="waitSend"></el-tab-pane>
+                        <el-tab-pane :label="tabPane.waitConfirm" name="waitConfirm"></el-tab-pane>
+                        <el-tab-pane :label="tabPane.waitComment" name="waitComment"></el-tab-pane>
+                        <el-tab-pane :label="tabPane.waitRefund" name="waitRefund"></el-tab-pane>
+                        <el-tab-pane :label="tabPane.refund" name="refund"></el-tab-pane>
+                        <el-tab-pane :label="tabPane.over" name="over"></el-tab-pane>
                     </el-tabs>
                     <el-table border empty-text=" " height="50px" style="width: 100%">
                         <el-table-column label="宝贝" min-width="40%"></el-table-column>
@@ -194,17 +203,19 @@
                                 <el-col :span="8"><span>交易单号:{{t.dealId}}</span></el-col>
                                 <el-col :span="3"><span>用户名:{{t.userName}}</span></el-col>
                                 <el-col :span="3">状态:
-                                    <el-tag v-if="t.status == 'waitPay'">待付款</el-tag>
+                                    <el-tag type="success" v-if="t.status == 'waitPay'">待付款</el-tag>
                                     <el-tag v-if="t.status == 'waitSend'">待发货</el-tag>
                                     <el-tag v-if="t.status == 'waitConfirm'">待收货</el-tag>
-                                    <el-tag v-if="t.status == 'waitComment'">待评价</el-tag>
-                                    <el-tag v-if="t.status == 'waitRefund'">待退款</el-tag>
-                                    <el-tag v-if="t.status == 'over'">完成</el-tag>
+                                    <el-tag type="warning" v-if="t.status == 'waitComment'">待评价</el-tag>
+                                    <el-tag type="danger" v-if="t.status == 'waitRefund'">待退款</el-tag>
+                                    <el-tag type="info" v-if="t.status == 'refund'">已退款</el-tag>
+                                    <el-tag type="info" v-if="t.status == 'over'">完成</el-tag>
                                 </el-col>
                                 <el-col :span="3">交易总额:￥<span style="font-size: 18px">{{t.dealPrice}}</span>元</el-col>
                                 <el-col :span="2">
                                     <el-button-group>
-                                        <el-button size="small" v-if="t.status == 'waitSend'" type="primary">发货</el-button>
+                                        <el-button size="small" v-if="t.status == 'waitSend'" type="primary" @click="openSend(t.dealId,t.userId)">发货</el-button>
+                                        <el-button size="small" v-if="t.status == 'waitRefund'" type="danger" @click="openRefund(t.dealId,t.userId)">退款</el-button>
                                     </el-button-group>
                                 </el-col>
                             </el-row>
@@ -288,7 +299,7 @@
     <el-dialog  title="补充商品信息" :visible.sync="replenishDgVisible" width="300px" @close="resetForm('replenishForm');resetFileList()">
         <el-form ref="replenishForm" :inline="true" :model="replenishForm" label-width="80px" size="mini">
             <el-form-item prop="condensePicLink">
-                <img v-bind:src="replenishForm.condensePicLink" alt="replenishForm.name">
+                <img v-bind:src="replenishForm.condensePicLink" alt="replenishForm.name" style="width: 240px;height: 240px">
             </el-form-item>
             <el-form-item>
                 <el-upload
@@ -318,7 +329,7 @@
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" @click="saveShopGoods">新建</el-button>
-                <el-button @click="resetForm('replenishForm')">重置</el-button>
+                <el-button @click="resetForm('replenishForm');resetFileList()">重置</el-button>
             </el-form-item>
         </el-form>
     </el-dialog>
@@ -388,6 +399,29 @@
         </el-form>
     </el-dialog>
 
+    <el-dialog title="商品图片展示" :visible.sync="picDgVisible" width="650px">
+        <div>
+            <ul style="display: flex;flex-wrap: wrap;">
+                <li v-for="v in picData" style="padding: 5px;list-style: none;margin-right: 15px;border: 1px solid #eee;">
+                    <img :src="v.url" style="height: 150px;width: 150px" @click="openDeletePic(v.id,v.url)">
+                </li>
+                <el-upload
+                        action="/import"
+                        :on-success="onShowSuccess"
+                        :on-error="onError"
+                        :before-upload="beforeUpload"
+                        style="display: inline"
+                        list-type="picture-card"
+                        :show-file-list="false">
+                    <img  v-if="'1'=='2'" :src="picLink" class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+            </ul>
+
+        </div>
+
+    </el-dialog>
+
     <!--修改超市信息弹窗-->
 
     <el-dialog id="modifyDg" :title="modifyShopDgTitle" :visible.sync="modifyShopDgVisible"  width="350px" @close="dialogClose('modifyShopDgVisible')">
@@ -401,15 +435,13 @@
                         :on-error="onError"
                         :before-upload="beforeUpload"
                         action="/import">
-                    <img v-if="picLink" :src="modifyShopForm.picLink" class="avatar">
+                    <img v-if="modifyShopForm.picLink" :src="modifyShopForm.picLink" class="avatar">
                     <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                 </el-upload>
             </el-form-item>
             <el-form-item label="昵称" prop="name">
                 <el-input v-model="modifyShopForm.name" autocomplete="off" clearable></el-input>
             </el-form-item>
-
-
             <el-form-item label="介绍" prop="remark">
                 <el-input v-model="modifyShopForm.remark" autocomplete="off" clearable></el-input>
             </el-form-item>
@@ -420,6 +452,18 @@
         </el-form>
         <div slot="footer" class="dialog-footer">
             <el-button type="primary" size="mini" @click="modifyShop">保 存</el-button>
+        </div>
+    </el-dialog>
+
+        <!-- message展示   -->
+    <el-dialog title="信息展示" :visible.sync="messageDgVisible" width="650px" height="650px">
+        <div v-for="v in messageData">
+            <p>
+                <el-tag v-if="v.status=='new'" type="success">新</el-tag>
+                {{v.message}}
+                <el-button size="mini" type="danger" icon="el-icon-delete" @click="openDeleteMessage(v.id)" style="float: right"></el-button>
+            </p><br>
+
         </div>
     </el-dialog>
 </div>
@@ -438,6 +482,9 @@
         data:function(){
             return{
                 activeIndex:"1",
+                newMessageNumber:0,
+                messageDgVisible:false,
+                messageData:[],
 
                 dealTableData:[],
                 dealCurrent:1,
@@ -462,6 +509,18 @@
                     offline:"已下架",
                     soldOut:"售罄",
                     prepared:"准备中",
+                    disabled:"冻结",
+                },
+
+                tabPane:{
+                    all:"全部",
+                    waitPay:"待付款",
+                    waitSend:"待发货",
+                    waitConfirm:"待收货",
+                    waitComment:"待评价",
+                    waitRefund:"待退款",
+                    refund:"已退款",
+                    over:"完成",
                 },
                 shopId:0,
                 id:null,
@@ -504,6 +563,9 @@
                     number:1
                 },
 
+                picDgVisible:false,
+                picData:{},
+                picGoodsId:null,
                 //修改超市信息弹窗
                 modifyShopDgTitle:null,
                 modifyShopDgVisible:false,
@@ -568,7 +630,6 @@
                     });
                 });
             },
-
             showShop(){
                 const _this=this;
                 axios.get('http://'+window.location.host+'/shop/getOneShop',{params:{id:_this.shopId}})
@@ -594,8 +655,82 @@
                 }).then(function () {
                     // always executed
                 });
-
             },
+
+            getNewMessageNumber:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/getNewMessageNumber',{latterId:_this.shopId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.newMessageNumber=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            openMessage:function(){
+                this.messageDgVisible=true;
+                this.getMessage();
+            },
+            getMessage:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/getMessage',{latterId:_this.shopId,type:"shop"})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.messageData=response.data.rtnData;
+                            _this.getNewMessageNumber();
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            openDeleteMessage:function(id){
+                this.$confirm('删除该信息, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.deleteMessage(id);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
+            deleteMessage:function(id){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/deleteMessage',{id:id})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.getMessage();
+                            _this.$message({
+                                type: 'success',
+                                message: '删除成功!'
+                            });
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+
             search(){
                 this.initTable();
             },
@@ -614,6 +749,7 @@
                             _this.tabMap.online="上架中("+response.data.rtnData.dataStatistics.online+")";
                             _this.tabMap.soldOut="售罄("+response.data.rtnData.dataStatistics.soldOut+")";
                             _this.tabMap.prepared="准备中("+response.data.rtnData.dataStatistics.prepared+")";
+                            _this.tabMap.disabled="冻结("+response.data.rtnData.dataStatistics.disabled+")";
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
@@ -709,7 +845,7 @@
             },
             saveShopGoods:function(){
                 const _this=this;
-                axios.post('http://'+window.location.host+'/shopGoods/addShopGoods',{form:_this.replenishForm,shopId:_this.shopId})
+                axios.post('http://'+window.location.host+'/shopGoods/addShopGoods',{form:_this.replenishForm,shopId:_this.shopId,fileList:_this.fileList})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.replenishDgVisible=false;
@@ -745,6 +881,42 @@
                 const _this=this;
                 _this.$refs[formName].resetFields();
             },
+
+            addMessage:function(message,relatedId,type,latterId){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/addMessage',{formerId:_this.shopId,latterId:latterId
+                    ,relatedId:relatedId,context:message,type:type})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            openEnabled:function(goodsId){
+                this.$confirm('确定商品信息正确，要求解冻？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.addMessage("请求解冻该商品！",goodsId,"enabledShopGoods","admin");
+                    this.$message({
+                        type: 'success',
+                        message: '请求成功!'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+
             saveGoods:function(){
                 const _this=this;
                 axios.post('http://'+window.location.host+'/goods/addGoods',{form:_this.registerGoodsForm,status:"unaudited"})
@@ -752,6 +924,7 @@
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.registerGoodsForm.id=response.data.rtnData.id;
                             _this.registerDgVisible=false;
+                            _this.addMessage("新建商品数据，请审核！",response.data.rtnData.id,"auditGoods","admin");
                             _this.$message('新建商品数据成功！请等待管理员审核。');
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
@@ -770,11 +943,70 @@
                 });
             },
 
+            //图片展示 修改弹窗
+
+            openPic:function(goodsId){
+                this.picDgVisible=true;
+                this.picGoodsId=goodsId;
+                this.getShopGoodsPic(this.picGoodsId);
+            },
+            openDeletePic:function(imageId,url){
+                this.$confirm('确认删除该图片?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.deletePic(imageId,url);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+            deletePic:function(imageId,url){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/deleteShopGoodsPic',{imageId:imageId,url:url})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.getShopGoodsPic(_this.picGoodsId);
+                            _this.$message({
+                                message: '删除成功',
+                                type: 'success'
+                            });
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            getShopGoodsPic:function(goodsId){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/getShopGoodsPic',{goodsId:goodsId,shopId:_this.shopId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.picData=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
             //修改商品信息
             openShopGoodsModify:function(shopGoods){
                 this.modifyDgVisible=true;
                 this.modifyForm=JSON.parse(JSON.stringify(shopGoods));
             },
+
             modifyShopGoods:function(){
                 const _this=this;
                 axios.post('http://'+window.location.host+'/shopGoods/modifyShopGoods',{form:_this.modifyForm,shopId:_this.shopId})
@@ -845,7 +1077,6 @@
                 for (var i = 0; i < fileList.length; i++) {
                     if (fileList[i].response != null) this.fileList[i] = fileList[i].response.rtnData;
                 }
-                console.log(this.fileList);
 
             },
             handleShopGoodsRemove(file, fileList) {
@@ -853,7 +1084,6 @@
                 for (var i = 0; i < fileList.length; i++) {
                     if (fileList[i].response != null) this.fileList[i] = fileList[i].response.rtnData;
                 }
-                console.log(this.fileList);
             },
 
             resetFileList:function(){
@@ -888,8 +1118,16 @@
                 axios.post('http://'+window.location.host+'/deal/getDealPage',{size:_this.dealSize,current:_this.dealCurrent,shopId:_this.shopId,status:_this.status})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
-                            _this.dealTableData=response.data.rtnData;
+                            _this.dealTableData=response.data.rtnData.resultList;
                             _this.dealTotal=response.data.total;
+                            _this.tabPane.all="全部("+response.data.rtnData.dataStatistics.all+")";
+                            _this.tabPane.waitPay="待付款("+response.data.rtnData.dataStatistics.waitPay+")";
+                            _this.tabPane.waitSend="待发货("+response.data.rtnData.dataStatistics.waitSend+")";
+                            _this.tabPane.waitConfirm="待收货("+response.data.rtnData.dataStatistics.waitConfirm+")";
+                            _this.tabPane.waitComment="待评价("+response.data.rtnData.dataStatistics.waitComment+")";
+                            _this.tabPane.waitRefund="待退款("+response.data.rtnData.dataStatistics.waitRefund+")";
+                            _this.tabPane.refund="已退款("+response.data.rtnData.dataStatistics.refund+")";
+                            _this.tabPane.over="完成("+response.data.rtnData.dataStatistics.over+")";
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
@@ -936,11 +1174,117 @@
                 this.modifyShopDgVisible=true;
             },
 
+
+            openSend:function(dealId,userId){
+                this.$confirm('确认发货?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.send(dealId,userId);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+            send:function(dealId,userId){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/deal/changeDealStatus',{dealId:dealId,status:"waitConfirm"})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.initDealTable();
+                            _this.addMessage("该商品已发货！",dealId,"shopDeliverGoods",userId);
+                            _this.$message({
+                                message: '发货成功',
+                                type: 'success'
+                            });
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '发货'+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            openRefund:function(dealId,userId){
+                this.$confirm('确认退款?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.refund(dealId,userId);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+
+            refund:function(dealId,userId){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/deal/shopRefundDeal',{dealId:dealId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.initDealTable();
+                            _this.addMessage("该商品已退款",dealId,"shopRefund",userId);
+                            _this.$message({
+                                message: '退款成功',
+                                type: 'success'
+                            });
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '退款'+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
             onShopSuccess:function(response, file, fileList) {
                 this.modifyShopForm.picLink=response.rtnData;
             },
             onGoodsSuccess:function(response, file, fileList) {
                 this.registerGoodsForm.condensePicLink=response.rtnData;
+            },
+            onShowSuccess:function(response, file, fileList){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/addOneImage',
+                    {   shopId:_this.shopId,
+                        goodsId:_this.picGoodsId,
+                        url:response.rtnData,
+                    }).then(function (responsed) {
+                    if(responsed.data.rtnFlag=="9999"){//请求成功
+                        _this.$message('添加图片成功！');
+                        _this.getShopGoodsPic(_this.picGoodsId);
+                    }else if(responsed.data.rtnFlag=="1001"){//未登录
+                        //_this.loginDgVisible=true;
+                    }else{}
+                }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+
             },
             onError(err, file, fileList) {},
             beforeUpload(file) {},
@@ -987,6 +1331,7 @@
             var url = window.location.href;
             _this.shopId =  url.split("?")[1].split("=")[1];
             this.getParentGoodsType();
+            this.getNewMessageNumber();
             this.initTable();
             this.showShop();
         },

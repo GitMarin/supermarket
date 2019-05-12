@@ -37,8 +37,19 @@
 <div id="manage" style="height: 100%">
     <el-container style="width: 100%;background-color: white;height: 100%">
         <el-header style="background-color: #5bb2ff">
-            <h5 style="text-align: center;color: white;height: 30px;line-height: 50px;float: left;">管理系统</h5>
-            <el-button @click="logout" type="danger" style="float: right;margin-top: 10px">退出登录</el-button>
+            <el-row>
+                <el-col :span="17">
+                    <h5 style="text-align: center;color: white;height: 30px;line-height: 50px;float: left;">管理系统</h5>
+                </el-col>
+                <el-col :span="4">
+                    <el-badge :value="newMessageNumber" :hidden="this.newMessageNumber=='0'" class="item" style="float: right;margin-top: 10px">
+                        <img src="img/message.png" style="width: 40px;height: 40px;" @click="openMessage">
+                    </el-badge>
+                </el-col>
+                <el-col :span="3">
+                    <el-button @click="logout" type="danger" style="float: right;margin-top: 10px">退出登录</el-button>
+                </el-col>
+            </el-row>
         </el-header>
         <el-container style="height: 100%">
             <el-aside style="width: 15%;height: 100%">
@@ -288,13 +299,12 @@
                                                 </el-table-column>
                                                 <el-table-column prop="number" label="数量" width="60">
                                                 </el-table-column>
-                                                <el-table-column prop="dealNumber" label="交易量" width="60">
-                                                </el-table-column>
-                                                <el-table-column label="操作">
+                                                <el-table-column label="操作" width="160">
                                                     <template slot-scope="scope">
                                                         <el-button-group>
-                                                            <el-button  @click="modifyShopGoodsStatus(scope.row.goodsId,'disabled')" v-if="scope.row.status == 'prepared' || scope.row.status == 'online'" size="small" type="danger">冻结</el-button>
-                                                            <el-button  @click="modifyShopGoodsStatus(scope.row.goodsId,'prepared')" v-if="scope.row.status == 'disabled'" size="small">解冻</el-button>
+                                                            <el-button  @click="openDisabled(scope.row.goodsId,'disabled')" v-if="scope.row.status == 'prepared' || scope.row.status == 'online'" size="mini" type="danger">冻结</el-button>
+                                                            <el-button  @click="openEnabled(scope.row.goodsId,'prepared')" v-if="scope.row.status == 'disabled'" size="mini" type="primary">解冻</el-button>
+                                                            <el-button  @click="openPic(scope.row.goodsId)" size="mini">图片</el-button>
                                                         </el-button-group>
                                                     </template>
                                                 </el-table-column>
@@ -350,78 +360,95 @@
                 <el-row v-if="this.activeIndex=='4'">
                     <el-col>
                         <el-row>
-                            <span>订单列表</span>
-                            <el-tabs @tab-click="handleTabClick">
-                                <el-tab-pane label="全部" name="all"></el-tab-pane>
-                                <el-tab-pane label="待付款" name="waitPay"></el-tab-pane>
-                                <el-tab-pane label="待发货" name="waitSend"></el-tab-pane>
-                                <el-tab-pane label="待收货" name="waitConfirm"></el-tab-pane>
-                                <el-tab-pane label="待评价" name="waitComment"></el-tab-pane>
-                                <el-tab-pane label="待退款" name="waitRefund"></el-tab-pane>
-                                <el-tab-pane label="已退款" name="refund"></el-tab-pane>
-                                <el-tab-pane label="完成" name="over"></el-tab-pane>
-                            </el-tabs>
-                            <el-card style="width: 100%;height: 50px">
-                                <el-row>
-                                    <el-col :span="10"><label>宝贝</label></el-col>
-                                    <el-col :span="3"><label>单价</label></el-col>
-                                    <el-col :span="4"><label>数量</label></el-col>
-                                    <el-col :span="7"><label>操作</label></el-col>
-                                </el-row>
-                            </el-card>
-                            <div v-for="t in dealTableData" style="width: 100%">
-                                <el-card>
-                                    <el-row style="height: 25px">
-                                        <el-col :span="5"><span>创建时间:{{t.createTime}}</span></el-col>
-                                        <el-col :span="7"><span>交易单号:{{t.dealId}}</span></el-col>
-                                        <el-col :span="4"><span>超市名:{{t.shopName}}</span></el-col>
-                                        <el-col :span="4"><span>用户名:{{t.userName}}</span></el-col>
-                                        <el-col :span="2">
-                                            <el-tag v-if="t.status == 'waitPay'">待付款</el-tag>
-                                            <el-tag v-if="t.status == 'waitSend'">待发货</el-tag>
-                                            <el-tag v-if="t.status == 'waitConfirm'">待收货</el-tag>
-                                            <el-tag v-if="t.status == 'waitComment'">待评价</el-tag>
-                                            <el-tag v-if="t.status == 'waitRefund'">待退款</el-tag>
-                                            <el-tag v-if="t.status == 'over'">完成</el-tag>
-                                        </el-col>
-
-                                        <el-col :span="2">
-                                            <el-button-group>
-<!--                                                <el-button size="small" v-if="t.status == 'waitPay'" type="primary" @click="openPay(t.dealId)">付款</el-button>-->
-<!--                                                <el-button size="small" v-if="t.status == 'waitConfirm'" type="primary" @click="openConfirm(t.dealId)">收货</el-button>-->
-<!--                                                <el-button size="small" v-if="t.status == 'waitComment'" type="success" @click="openComment(t.dealId)">评价</el-button>-->
-<!--                                                <el-button size="small" v-if="t.status == 'waitSend'" type="primary">提醒发货</el-button>-->
-<!--                                                <el-button size="small" v-if="t.status != 'waitPay' && t.status != 'over'" type="warning">退款</el-button>-->
-<!--                                                <el-button size="small" v-if="t.status == 'waitPay'" type="danger" @click="openDelete(t.dealId)">撤销</el-button>-->
-                                            </el-button-group>
-                                        </el-col>
+                            <el-card>
+                                <span>订单列表</span>
+                                <el-tabs @tab-click="handleTabClick" v-model="activeDealName">
+                                    <el-tab-pane :label="tabPane.all" name="all"></el-tab-pane>
+                                    <el-tab-pane :label="tabPane.waitPay" name="waitPay"></el-tab-pane>
+                                    <el-tab-pane :label="tabPane.waitSend" name="waitSend"></el-tab-pane>
+                                    <el-tab-pane :label="tabPane.waitConfirm" name="waitConfirm"></el-tab-pane>
+                                    <el-tab-pane :label="tabPane.waitComment" name="waitComment"></el-tab-pane>
+                                    <el-tab-pane :label="tabPane.waitRefund" name="waitRefund"></el-tab-pane>
+                                    <el-tab-pane :label="tabPane.refund" name="refund"></el-tab-pane>
+                                    <el-tab-pane :label="tabPane.over" name="over"></el-tab-pane>
+                                </el-tabs>
+                                <el-card style="width: 100%;height: 50px">
+                                    <el-row>
+                                        <el-col :span="10"><label>宝贝</label></el-col>
+                                        <el-col :span="3"><label>单价</label></el-col>
+                                        <el-col :span="4"><label>数量</label></el-col>
+                                        <el-col :span="7"><label>操作</label></el-col>
                                     </el-row>
                                 </el-card>
-                                <el-card v-for="v in t.cardData" style="height: 55px">
-                                    <el-row>
-                                        <el-col :span="10"><span>{{v.goodsName}}</span></el-col>
-                                        <el-col :span="4"><span>￥{{v.goodsPrice}}元</span></el-col>
-                                        <el-col :span="3"><span>{{v.goodsNumber}}</span></el-col>
-                                        <el-col :span="6"></el-col>
-                                    </el-row>
-                                </el-card><br>
-                            </div>
-
-                            <el-pagination
-                                    :page-sizes="[3, 6, 9, 15]"
-                                    :current-page="dealCurrent"
-                                    :page-size="dealSize"
-                                    :total="dealTotal"
-                                    @size-change="handleDealSizeChange"
-                                    @current-change="handleDealCurrentChange"
-                                    layout="total, sizes, prev, pager, next, jumper">
-                            </el-pagination>
+                                <div v-for="t in dealTableData" style="width: 100%">
+                                    <el-card>
+                                        <el-row style="height: 25px">
+                                            <el-col :span="5"><span>创建时间:{{t.createTime}}</span></el-col>
+                                            <el-col :span="7"><span>交易单号:{{t.dealId}}</span></el-col>
+                                            <el-col :span="4"><span>超市名:{{t.shopName}}</span></el-col>
+                                            <el-col :span="3"><span>用户名:{{t.userName}}</span></el-col>
+                                            <el-col :span="2">
+                                                <el-tag v-if="t.status == 'waitPay'">待付款</el-tag>
+                                                <el-tag v-if="t.status == 'waitSend'">待发货</el-tag>
+                                                <el-tag v-if="t.status == 'waitConfirm'">待收货</el-tag>
+                                                <el-tag v-if="t.status == 'waitComment'">待评价</el-tag>
+                                                <el-tag v-if="t.status == 'waitRefund'">待退款</el-tag>
+                                                <el-tag v-if="t.status == 'refund'">已退款</el-tag>
+                                                <el-tag v-if="t.status == 'over'">完成</el-tag>
+                                            </el-col>
+                                            <el-col :span="3">
+                                                <el-button-group>
+                                                    <el-button size="mini" v-if="t.status == 'waitRefund'" type="warning" @click="openRefund(t.dealId,t.userId,t.shopId)">强制退款</el-button>
+                                                </el-button-group>
+                                            </el-col>
+                                        </el-row>
+                                    </el-card>
+                                    <el-card v-for="v in t.cardData" style="height: 55px">
+                                        <el-row>
+                                            <el-col :span="10"><span>{{v.goodsName}}</span></el-col>
+                                            <el-col :span="4"><span>￥{{v.goodsPrice}}元</span></el-col>
+                                            <el-col :span="3"><span>{{v.goodsNumber}}</span></el-col>
+                                            <el-col :span="6"></el-col>
+                                        </el-row>
+                                    </el-card><br>
+                                </div>
+                                <el-pagination
+                                        :page-sizes="[3, 6, 9, 15]"
+                                        :current-page="dealCurrent"
+                                        :page-size="dealSize"
+                                        :total="dealTotal"
+                                        @size-change="handleDealSizeChange"
+                                        @current-change="handleDealCurrentChange"
+                                        layout="total, sizes, prev, pager, next, jumper">
+                                </el-pagination>
+                            </el-card>
                         </el-row>
                     </el-col>
                 </el-row>
             </el-main>
         </el-container>
     </el-container>
+
+    <el-dialog title="商品图片展示" :visible.sync="picDgVisible" width="650px">
+        <div>
+            <ul style="display: flex;flex-wrap: wrap;">
+                <li v-for="v in picData" style="padding: 5px;list-style: none;margin-right: 15px;border: 1px solid #eee;">
+                    <img :src="v.url" style="height: 150px;width: 150px">
+                </li>
+            </ul>
+
+        </div>
+    </el-dialog>
+
+    <el-dialog title="信息展示" :visible.sync="messageDgVisible" width="650px" height="650px">
+        <div v-for="v in messageData">
+            <p>
+                <el-tag v-if="v.status=='new'" type="success">新</el-tag>
+                {{v.message}}
+                <el-button size="mini" type="danger" icon="el-icon-delete" @click="openDeleteMessage(v.id)" style="float: right"></el-button>
+            </p>
+        </div>
+    </el-dialog>
 </div>
 
 </body>
@@ -438,7 +465,23 @@
         data:function(){
             return {
                 activeIndex:"1",
+                newMessageNumber:0,
+                messageDgVisible:false,
+                messageData:[],
                 //商品类型所用参数
+
+                activeDealName:"all",
+                tabPane:{
+                    all:"全部",
+                    waitPay:"待付款",
+                    waitSend:"待发货",
+                    waitConfirm:"待收货",
+                    waitComment:"待评价",
+                    waitRefund:"待退款",
+                    refund:"已退款",
+                    over:"完成",
+                },
+
                 tableData: [],
                 title:"新建类型",
                 total:0,
@@ -505,6 +548,9 @@
                 dealCurrent:1,
                 dealStatus:null,
                 dealTotal:0,
+
+                picDgVisible:false,
+                picData:{},
             }
         },
         methods:{
@@ -530,6 +576,78 @@
                     // always executed
                 });
             },
+            getNewMessageNumber:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/getNewMessageNumber',{latterId:"admin"})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.newMessageNumber=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            openMessage:function(){
+                this.messageDgVisible=true;
+                this.getMessage();
+            },
+            getMessage:function(){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/getMessage',{latterId:"admin",type:"admin"})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.messageData=response.data.rtnData;
+                            _this.getNewMessageNumber();
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+            openDeleteMessage:function(id){
+                this.$confirm('删除该信息, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.deleteMessage(id);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
+            deleteMessage:function(id){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/deleteMessage',{id:id})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.getMessage();
+                            _this.$message({
+                                type: 'success',
+                                message: '删除成功!'
+                            });
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
             //左侧栏目功能
             handleSelect(key) {
                 this.activeIndex=key;
@@ -537,6 +655,7 @@
                 else if(this.activeIndex=="2")   this.initGoodsTable();
                 else if(this.activeIndex=="3")   this.initShopTable();
                 else if(this.activeIndex=="4")   this.initDealTable();
+
             },
 
             logout:function(){
@@ -792,7 +911,6 @@
                 this.initGoodsTable();
             },
             onGoodsSuccess:function(response, file, fileList) {
-                console.log(response.rtnData);
                 this.goodsForm.condensePicLink=response.rtnData;
             },
             onError(err, file, fileList) {},
@@ -854,6 +972,53 @@
                 this.initShopGoodsTable();
             },
 
+
+            openDisabled:function(id,status){
+                this.$prompt('请输入冻结理由', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                }).then(({ value }) => {
+                    this.modifyShopGoodsStatus(id,status);
+                    this.addMessage(value,id,"disabledShopGoods",this.shopId);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+            openEnabled:function(id,status){
+                this.$confirm('解冻该商品, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.modifyShopGoodsStatus(id,status);
+                    this.addMessage("该商品已解冻！",id,"enabledShopGoods",this.shopId);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+            addMessage:function(message,relatedId,type,latterId){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/message/addMessage',{formerId:"admin",latterId:latterId
+                    ,relatedId:relatedId,context:message,type:type})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
             modifyShopGoodsStatus:function(id,status){
                 const _this=this;
                 axios.post('http://'+window.location.host+'/shopGoods/modifyShopGoodsStatus',{goodsId:id,status:status,shopId:_this.shopId})
@@ -894,6 +1059,71 @@
                                 message: "修改超市状态"+'失败！'+response.data.rtnMsg
                             });
                         }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            openRefund:function(dealId,userId,shopId){
+                this.$confirm('确认将订单强制退款?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.refund(dealId,userId,shopId);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消'
+                    });
+                });
+            },
+            refund:function(dealId,userId,shopId){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/deal/shopRefundDeal',{dealId:dealId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.initDealTable();
+                            _this.addMessage("该商品已强制退款",dealId,"adminRefund",userId);
+                            _this.addMessage("该商品已强制退款",dealId,"adminRefund",shopId);
+                            _this.$message({
+                                message: '退款成功',
+                                type: 'success'
+                            });
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{
+                            _this.$bdmsg({
+                                type:"toast",
+                                msgType:"error",
+                                message: '退款'+'失败！'+response.data.rtnMsg
+                            });
+                        }
+                    }).catch(function (error) {
+                    // handle error
+                    console.log(error);
+                }).then(function () {
+                    // always executed
+                });
+            },
+
+            openPic:function(goodsId){
+                this.picDgVisible=true;
+                this.picGoodsId=goodsId;
+                this.getShopGoodsPic(this.picGoodsId);
+            },
+            getShopGoodsPic:function(goodsId){
+                const _this=this;
+                axios.post('http://'+window.location.host+'/shopGoods/getShopGoodsPic',{goodsId:goodsId,shopId:_this.shopId})
+                    .then(function (response) {
+                        if(response.data.rtnFlag=="9999"){//请求成功
+                            _this.picData=response.data.rtnData;
+                        }else if(response.data.rtnFlag=="1001"){//未登录
+                            //_this.loginDgVisible=true;
+                        }else{}
                     }).catch(function (error) {
                     // handle error
                     console.log(error);
@@ -950,8 +1180,16 @@
                 axios.post('http://'+window.location.host+'/deal/getDealPage',{size:_this.dealSize,current:_this.dealCurrent,status:_this.dealStatus})
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
-                            _this.dealTableData=response.data.rtnData;
+                            _this.dealTableData=response.data.rtnData.resultList;
                             _this.dealTotal=response.data.total;
+                            _this.tabPane.all="全部("+response.data.rtnData.dataStatistics.all+")";
+                            _this.tabPane.waitPay="待付款("+response.data.rtnData.dataStatistics.waitPay+")";
+                            _this.tabPane.waitSend="待发货("+response.data.rtnData.dataStatistics.waitSend+")";
+                            _this.tabPane.waitConfirm="待收货("+response.data.rtnData.dataStatistics.waitConfirm+")";
+                            _this.tabPane.waitComment="待评价("+response.data.rtnData.dataStatistics.waitComment+")";
+                            _this.tabPane.waitRefund="待退款("+response.data.rtnData.dataStatistics.waitRefund+")";
+                            _this.tabPane.refund="已退款("+response.data.rtnData.dataStatistics.refund+")";
+                            _this.tabPane.over="完成("+response.data.rtnData.dataStatistics.over+")";
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;
                         }else{
@@ -973,6 +1211,8 @@
         mounted: function() {
             const _this = this;
             _this.getParentGoodsType();
+            _this.getNewMessageNumber();
+            _this.initTable();
         },
     });
 </script>

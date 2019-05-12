@@ -16,10 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName DealServiceImpl
@@ -53,6 +50,7 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
         //分页处理
         QueryWrapper<Deal> queryWrapper=Wrappers.query();
 
+        queryWrapper.orderByDesc("id");
         if(map.get("userId")!=null){
             String userId=map.get("userId").toString();
             queryWrapper.eq("user_id",userId);
@@ -61,7 +59,6 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
             String shopId=map.get("shopId").toString();
             queryWrapper.eq("shop_id",shopId);
         }
-
 
         if(map.get("status")!=null) queryWrapper.eq("status",map.get("status").toString());
         IPage<Deal> pageData=page(new com.baomidou.mybatisplus.extension.plugins.pagination.Page<Deal>(current,size),queryWrapper);
@@ -88,16 +85,20 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
             else if(map.get("shopId")!=null){
                 String userName=userMapper.selectById(deal.getUserId()).getNickname();
                 resultMap.put("userName",userName);
+                resultMap.put("userId",deal.getUserId());
             }else{
                 String shopName=shopMapper.selectById(deal.getShopId()).getName();
                 resultMap.put("shopName",shopName);
+                resultMap.put("shopId",deal.getShopId());
                 String userName=userMapper.selectById(deal.getUserId()).getNickname();
                 resultMap.put("userName",userName);
+                resultMap.put("userId",deal.getUserId());
             }
 
             //获取交易ID，用于存放以及在dealDetails表中查询详细信息
             String dealId=deal.getId();
             resultMap.put("dealId",dealId);
+            resultMap.put("shopId",deal.getShopId());
             QueryWrapper<DealDetails> queryWrapperDD=Wrappers.query();
             queryWrapperDD.eq("id",dealId);
             List<DealDetails> dealDetailsList=dealDetailsMapper.selectList(queryWrapperDD);
@@ -119,9 +120,60 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
             resultMap.put("cardData",dealGoodsList);
             resultList.add(resultMap);
         }
-        return MkplatWebModel.convertMetroPayWebModel(pageData.getTotal(),resultList);
+        Map<String,Object> result = new HashMap<>(1);
+        if(map.get("userId")!=null) result.put("dataStatistics",dataStatistics(null,map.get("userId").toString()));
+        else if(map.get("shopId")!=null) result.put("dataStatistics",dataStatistics(map.get("shopId").toString(),null));
+        else result.put("dataStatistics",dataStatistics(null,null));
+        result.put("resultList",resultList);
+        return MkplatWebModel.convertMetroPayWebModel(pageData.getTotal(),result);
     }
 
+    private Map<String,Integer>  dataStatistics(String shopId,String userId){
+        Map<String,Integer> dataStatisticsMap=new HashMap<>();
+        //全部数据统计
+        QueryWrapper<Deal> queryWrapper= Wrappers.query();
+        queryWrapper.eq((shopId!=null),"shop_id",shopId).eq((userId!=null),"user_id",userId);
+        int all=count(queryWrapper);
+        dataStatisticsMap.put("all",all);
+        //待付款数据统计 waitPay
+        QueryWrapper<Deal> queryWrapper1= Wrappers.query();
+        queryWrapper1.eq("status","waitPay").eq((shopId!=null),"shop_id",shopId).eq((userId!=null),"user_id",userId);
+        int waitPay=count(queryWrapper1);
+        dataStatisticsMap.put("waitPay",waitPay);
+        //待发货数据统计 waitSend
+        QueryWrapper<Deal> queryWrapper2= Wrappers.query();
+        queryWrapper2.eq("status","waitSend").eq((shopId!=null),"shop_id",shopId).eq((userId!=null),"user_id",userId);
+        int waitSend=count(queryWrapper2);
+        dataStatisticsMap.put("waitSend",waitSend);
+        //待收货数据统计 waitConfirm
+        QueryWrapper<Deal> queryWrapper3= Wrappers.query();
+        queryWrapper3.eq("status","waitConfirm").eq((shopId!=null),"shop_id",shopId).eq((userId!=null),"user_id",userId);
+        int waitConfirm=count(queryWrapper3);
+        dataStatisticsMap.put("waitConfirm",waitConfirm);
+        //待评价数据统计 waitComment
+        QueryWrapper<Deal> queryWrapper4= Wrappers.query();
+        queryWrapper4.eq("status","waitComment").eq((shopId!=null),"shop_id",shopId).eq((userId!=null),"user_id",userId);
+        int waitComment=count(queryWrapper4);
+        dataStatisticsMap.put("waitComment",waitComment);
+        //完成数据统计 over
+        QueryWrapper<Deal> queryWrapper5= Wrappers.query();
+        queryWrapper5.eq("status","over").eq((shopId!=null),"shop_id",shopId).eq((userId!=null),"user_id",userId);
+        int over=count(queryWrapper5);
+        dataStatisticsMap.put("over",over);
+
+        //待退款数据统计 waitRefund
+        QueryWrapper<Deal> queryWrapper6= Wrappers.query();
+        queryWrapper6.eq("status","waitRefund").eq((shopId!=null),"shop_id",shopId).eq((userId!=null),"user_id",userId);
+        int waitRefund=count(queryWrapper6);
+        dataStatisticsMap.put("waitRefund",waitRefund);
+
+        //已退款数据统计 refund
+        QueryWrapper<Deal> queryWrapper7= Wrappers.query();
+        queryWrapper7.eq("status","refund").eq((shopId!=null),"shop_id",shopId).eq((userId!=null),"user_id",userId);
+        int refund=count(queryWrapper7);
+        dataStatisticsMap.put("refund",refund);
+        return dataStatisticsMap;
+    }
 
     public MkplatWebModel addDeal(Map<String,Object> map){
         //生成主键
@@ -171,6 +223,16 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
         Goods goods = goodsMapper.selectById(goodsId);
         goods.setNumber(goods.getNumber()-number);
         goodsMapper.updateById(goods);
+
+        Timer timer = new Timer();
+
+        //延迟1000ms执行程序
+        timer.schedule(new TimerTask() {
+            public void run(){
+                deleteDeal(key);
+                timer.cancel();
+            }
+        }, 1200000);
         return MkplatWebModel.convertMetroPayWebModel(key);
     }
 
@@ -178,65 +240,60 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
         String dealId = map.get("dealId").toString();
         String status = map.get("status").toString();
         Deal deal = getById(dealId);
-        if(!status.equals("waitConfirm")){
+        if(!status.equals("waitConfirm") && !status.equals("waitRefund")){
             User user = userMapper.selectById(deal.getUserId());
-            Shop shop = shopMapper.selectById(deal.getShopId());
-
-            QueryWrapper<DealDetails> queryWrapper= Wrappers.query();
-            queryWrapper.eq("deal_id",dealId);
-            List<DealDetails> dealDetailsList = dealDetailsMapper.selectList(queryWrapper);
-            //收货
-            if(status.equals("waitComment")) {
-                //更改user、shop、shopGoods的dealnumber
-                user.setDealNumber(user.getDealNumber()+1);
-
-                shop.setDealNumber(shop.getDealNumber()+1);
-
-                for(int i=0;i<dealDetailsList.size();i++){
-                    String goodsId = dealDetailsList.get(i).getGoodsId();
-                    QueryWrapper<ShopGoods> queryWrapper1 = Wrappers.query();
-                    queryWrapper1.eq("shop_id",deal.getShopId()).eq("goods_id",goodsId);
-                    ShopGoods shopGoods = shopGoodsMapper.selectOne(queryWrapper1);
-                    UpdateWrapper<ShopGoods> updateWrapper = Wrappers.update();
-                    updateWrapper.eq("shop_id",deal.getShopId()).eq("goods_id",goodsId);
-                    shopGoods.setDealNumber(shopGoods.getDealNumber()+1);
-                    shopGoodsMapper.update(shopGoods,updateWrapper);
-                }
-                //资金转移
-                Account userAccount = accountMapper.selectById(user.getId());
-                Account shopAccount = accountMapper.selectById(shop.getId());
-                userAccount.setTransfer(userAccount.getTransfer().subtract(deal.getDealPrice()));
-                shopAccount.setWallet(shopAccount.getWallet().add(deal.getDealPrice()));
-                accountMapper.updateById(userAccount);
-                accountMapper.updateById(shopAccount);
-
-            }
             //付款
-            else if(status.equals("waitSend")){
+            if(status.equals("waitSend")){
                 Account userAccount = accountMapper.selectById(user.getId());
                 userAccount.setWallet(userAccount.getWallet().subtract(deal.getDealPrice()));
                 userAccount.setTransfer(deal.getDealPrice());
                 accountMapper.updateById(userAccount);
-            }
-            //评价
-            else if(status.equals("over") && map.get("comment")!=null){
-                user.setCommentNumber(user.getCommentNumber()+1);
-
-                shop.setCommentNumber(shop.getCommentNumber()+1);
-
-                for(int i=0;i<dealDetailsList.size();i++){
-                    String goodsId = dealDetailsList.get(i).getGoodsId();
-                    QueryWrapper<ShopGoods> queryWrapper1 = Wrappers.query();
-                    queryWrapper1.eq("shop_id",deal.getShopId()).eq("goods_id",goodsId);
-                    ShopGoods shopGoods = shopGoodsMapper.selectOne(queryWrapper1);
-                    UpdateWrapper<ShopGoods> updateWrapper = Wrappers.update();
-                    updateWrapper.eq("shop_id",deal.getShopId()).eq("goods_id",goodsId);
-                    shopGoods.setCommentNumber(shopGoods.getCommentNumber()+1);
-                    shopGoodsMapper.update(shopGoods,updateWrapper);
+            }else{ //收货、评价
+                Shop shop = shopMapper.selectById(deal.getShopId());
+                QueryWrapper<DealDetails> queryWrapper= Wrappers.query();
+                queryWrapper.eq("id",dealId);
+                List<DealDetails> dealDetailsList = dealDetailsMapper.selectList(queryWrapper);
+                //收货
+                if(status.equals("waitComment")) {
+                    //更改user、shop、shopGoods的dealnumber
+                    user.setDealNumber(user.getDealNumber()+1);
+                    shop.setDealNumber(shop.getDealNumber()+1);
+                    for(int i=0;i<dealDetailsList.size();i++){
+                        String goodsId = dealDetailsList.get(i).getGoodsId();
+                        QueryWrapper<ShopGoods> queryWrapper1 = Wrappers.query();
+                        queryWrapper1.eq("shop_id",deal.getShopId()).eq("goods_id",goodsId);
+                        ShopGoods shopGoods = shopGoodsMapper.selectOne(queryWrapper1);
+                        UpdateWrapper<ShopGoods> updateWrapper = Wrappers.update();
+                        updateWrapper.eq("shop_id",deal.getShopId()).eq("goods_id",goodsId);
+                        shopGoods.setDealNumber(shopGoods.getDealNumber()+1);
+                        shopGoodsMapper.update(shopGoods,updateWrapper);
+                    }
+                    //资金转移
+                    Account userAccount = accountMapper.selectById(user.getId());
+                    Account shopAccount = accountMapper.selectById(shop.getId());
+                    userAccount.setTransfer(userAccount.getTransfer().subtract(deal.getDealPrice()));
+                    shopAccount.setWallet(shopAccount.getWallet().add(deal.getDealPrice()));
+                    accountMapper.updateById(userAccount);
+                    accountMapper.updateById(shopAccount);
                 }
+                //评价
+                else if(status.equals("over") && map.get("comment")!=null){
+                    user.setCommentNumber(user.getCommentNumber()+1);
+                    shop.setCommentNumber(shop.getCommentNumber()+1);
+                    for(int i=0;i<dealDetailsList.size();i++){
+                        String goodsId = dealDetailsList.get(i).getGoodsId();
+                        QueryWrapper<ShopGoods> queryWrapper1 = Wrappers.query();
+                        queryWrapper1.eq("shop_id",deal.getShopId()).eq("goods_id",goodsId);
+                        ShopGoods shopGoods = shopGoodsMapper.selectOne(queryWrapper1);
+                        UpdateWrapper<ShopGoods> updateWrapper = Wrappers.update();
+                        updateWrapper.eq("shop_id",deal.getShopId()).eq("goods_id",goodsId);
+                        shopGoods.setCommentNumber(shopGoods.getCommentNumber()+1);
+                        shopGoodsMapper.update(shopGoods,updateWrapper);
+                    }
+                }
+                userMapper.updateById(user);
+                shopMapper.updateById(shop);
             }
-            userMapper.updateById(user);
-            shopMapper.updateById(shop);
         }
         deal.setStatus(status);
         updateById(deal);
@@ -293,8 +350,9 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
                 shopGoodsQueryWrapper.eq("shop_id",shopId).eq("goods_id",goodsId);
                 ShopGoods shopGoods = shopGoodsMapper.selectOne(shopGoodsQueryWrapper);
                 shopGoods.setNumber(shopGoods.getNumber()-number);
-                int t = shopGoodsMapper.updateById(shopGoods);
-                System.out.println(t);
+                UpdateWrapper<ShopGoods> shopGoodsUpdateWrapper = Wrappers.update();
+                shopGoodsUpdateWrapper.eq("shop_id",shopId).eq("goods_id",goodsId);
+                shopGoodsMapper.update(shopGoods,shopGoodsUpdateWrapper);
 
                 DealDetails dealDetails = new DealDetails();
                 dealDetails.setGoodsPrice(price);
@@ -317,6 +375,44 @@ public class DealServiceImpl extends ServiceImpl<DealMapper, Deal> implements ID
             save(deal);
 
         }
+        return MkplatWebModel.success();
+    }
+
+    @Override
+    public MkplatWebModel shopRefundDeal(Map<String,Object> map){
+        String dealId = map.get("dealId").toString();
+        Deal deal = getById(dealId);
+
+        String userId=deal.getUserId();
+        String shopId=deal.getShopId();
+        //钱从第三方返回
+        Account userAccount = accountMapper.selectById(userId);
+        userAccount.setWallet(userAccount.getWallet().add(deal.getDealPrice()));
+        userAccount.setTransfer(userAccount.getTransfer().subtract(deal.getDealPrice()));
+        accountMapper.updateById(userAccount);
+
+        QueryWrapper<DealDetails> queryWrapper= Wrappers.query();
+        queryWrapper.eq("id",dealId);
+        List<DealDetails> dealDetailsList = dealDetailsMapper.selectList(queryWrapper);
+        for(int i=0;i<dealDetailsList.size();i++){
+            DealDetails dealDetails = dealDetailsList.get(i);
+            String goodsId = dealDetails.getGoodsId();
+
+            Goods goods = goodsMapper.selectById(goodsId);
+            goods.setNumber(goods.getNumber()+dealDetails.getGoodsNumber());
+            goodsMapper.updateById(goods);
+
+            QueryWrapper<ShopGoods> shopGoodsQueryWrapper = Wrappers.query();
+            shopGoodsQueryWrapper.eq("shop_id",shopId).eq("goods_id",goodsId);
+            ShopGoods shopGoods = shopGoodsMapper.selectOne(shopGoodsQueryWrapper);
+            shopGoods.setNumber(shopGoods.getNumber()+dealDetails.getGoodsNumber());
+
+            UpdateWrapper<ShopGoods> shopGoodsUpdateWrapper = Wrappers.update();
+            shopGoodsUpdateWrapper.eq("shop_id",shopId).eq("goods_id",goodsId);
+            shopGoodsMapper.update(shopGoods,shopGoodsUpdateWrapper);
+        }
+        deal.setStatus("refund");
+        updateById(deal);
         return MkplatWebModel.success();
     }
 
