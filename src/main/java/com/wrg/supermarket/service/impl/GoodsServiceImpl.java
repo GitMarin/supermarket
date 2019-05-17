@@ -1,6 +1,7 @@
 package com.wrg.supermarket.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.injector.methods.SelectOne;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -10,8 +11,10 @@ import com.wrg.supermarket.component.MkplatWebModel;
 import com.wrg.supermarket.component.UUIDGenerator;
 import com.wrg.supermarket.entity.Goods;
 import com.wrg.supermarket.entity.GoodsType;
+import com.wrg.supermarket.entity.ShopGoods;
 import com.wrg.supermarket.mapper.GoodsMapper;
 import com.wrg.supermarket.mapper.GoodsTypeMapper;
+import com.wrg.supermarket.mapper.ShopGoodsMapper;
 import com.wrg.supermarket.service.IGoodsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
 
     @Autowired
     private GoodsTypeMapper goodsTypeMapper;
+    @Autowired
+    private ShopGoodsMapper shopGoodsMapper;
     @Override
     public MkplatWebModel getGoodsPage(Map<String,Object> map) {
         int current=Integer.parseInt(map.get("current").toString());
@@ -98,13 +103,10 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
 
         goods.setLastCommentTime(null);
         goods.setLastDealTime(null);
-        goods.setLastFavoritesTime(null);
         goods.setCommentNumber(0);
         goods.setDealNumber(0);
-        goods.setFavoritesNumber(0);
 
         LocalDateTime currentDate=LocalDateTime.now();
-        goods.setModifyTime(currentDate);
         goods.setCreateTime(currentDate);
 
         save(goods);
@@ -123,7 +125,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         goods.setId(map.get("id").toString());
         goods.setCondensePicLink(map.get("condensePicLink").toString());
         LocalDateTime currentDate=LocalDateTime.now();
-        goods.setModifyTime(currentDate);
         updateById(goods);
         return MkplatWebModel.success();
     }
@@ -131,11 +132,26 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
     @Override
     public MkplatWebModel modifyGoodsStatus(Map<String,Object> map){
         Goods goods = new Goods();
-        goods.setId(map.get("id").toString());
-        goods.setStatus(map.get("status").toString());
+        String status = map.get("status").toString();
+        String goodsId = map.get("id").toString();
+        goods.setId(goodsId);
+        goods.setStatus(status);
+
+        if(status.equals("disabled")) {
+            UpdateWrapper<ShopGoods> shopGoodsUpdateWrapper = Wrappers.update();
+            shopGoodsUpdateWrapper.eq("goods_id", goodsId).set("status","disabled");
+            shopGoodsMapper.update(new ShopGoods(),shopGoodsUpdateWrapper);
+            goods.setNumber(0);
+        }else if(status.equals("enabledAll")){
+            UpdateWrapper<ShopGoods> shopGoodsUpdateWrapper = Wrappers.update();
+            shopGoodsUpdateWrapper.eq("goods_id", goodsId).set("status","prepared");
+            shopGoodsMapper.update(new ShopGoods(),shopGoodsUpdateWrapper);
+            goods.setStatus("enabled");
+        }
         updateById(goods);
         return MkplatWebModel.success();
     }
+
 
     private void queryTypeId(String typeId,QueryWrapper<Goods> queryWrapper){
         queryWrapper.eq("type_id",typeId).or();

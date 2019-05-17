@@ -58,14 +58,14 @@ public class LoginController {
     @ResponseBody
     @RequestMapping("/testUsername")
     public MkplatWebModel testUsername(@RequestBody Map<String,Object> map){
-        String name= (String) map.get("username");
+        String name= map.get("username").toString();
         return iLoginService.testName(name,"user");
     }
 
     @ResponseBody
     @RequestMapping("/testShopName")
     public MkplatWebModel testShopName(@RequestBody Map<String,Object> map){
-        String name= (String) map.get("username");
+        String name= map.get("username").toString();
         return iLoginService.testName(name,"shop");
     }
 

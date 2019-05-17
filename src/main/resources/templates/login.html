@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" style="height: 100%">
+<html lang="en" style="height: 100%;width: 100%">
 <head>
     <meta charset="utf-8">
     <title>用户登录</title>
@@ -9,9 +9,10 @@
     <link rel="stylesheet" type="text/css" href="styles/vuescroll.css">
 
 </head>
-<body :background="backgroundImg" style="height: 100%; background-repeat:no-repeat ;background-size:100% 100%;background-attachment: fixed;">
-<div id="login" class="divForm">
-<el-card shadow="hover">
+<body style="height: 100%;width: 100%">
+<div id="login" :style="bodyStyle">
+<div  class="divForm" >
+    <el-card shadow="hover">
         <el-form ref="loginForm" :inline="true" :model="loginForm" label-width="70px" size="mini">
             <el-form-item :label="loginForm.labelName"></el-form-item>
             <el-form-item label="账号" prop="username">
@@ -80,7 +81,7 @@
     </el-dialog>
 </div>
 
-
+</div>
 
 
 </body>
@@ -121,10 +122,12 @@
             };
             var validateUsername = (rule, value, callback) => {
                 if (value === null) {
-                    callback(new Error('请输入登陆名！'))
+                    callback(new Error('请输入登陆名！'));
                 }else{
+                    console.log("not null");
                     if(this.loginForm.labelName=="用户登录") var str='/testUsername';
                     else if(this.loginForm.labelName=="超市登录") var str='/testShopName';
+                    console.log(str);
                     axios.post('http://'+window.location.host+str,{username:value})
                         .then(function (response) {
                             if(response.data.rtnFlag=="9999"){//请求成功
@@ -144,12 +147,19 @@
 
             return {
                 //登陆数据
-                backgroundImg:"http://120.78.201.143:8080/image/wpic396.jpg",
+
                 loginForm:{
                     labelName:"用户登录",
                     username:'',
                     password:''
                 },
+                bodyStyle:{
+                    height: '100%',
+                    backgroundImage:"url('img/wpic396.jpg')",
+                    backgroundRepeat:'no-repeat',
+                    backgroundSize:'cover',
+                },
+
                 //注册弹窗参数
                 registerDgTitle:"用户注册",
                 registerDgVisible:false,
@@ -210,11 +220,11 @@
                 if(this.loginForm.labelName=="用户登录"){
                     this.registerDgTitle="超市注册";
                     this.loginForm.labelName="超市登录";
-                    this.backgroundImg="http://120.78.201.143:8080/image/wpic660.jpg";
+                    this.bodyStyle.backgroundImage="url('img/wpic660.jpg')";
                 }else if(this.loginForm.labelName=="超市登录") {
                     this.registerDgTitle = "用户注册";
                     this.loginForm.labelName = "用户登录";
-                    this.backgroundImg="http://120.78.201.143:8080/image/wpic396.jpg";
+                    this.bodyStyle.backgroundImage="url('img/wpic396.jpg')";
                 }
             },
             login(type){

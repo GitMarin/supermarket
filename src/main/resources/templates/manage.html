@@ -79,7 +79,7 @@
                             </div>
                             <el-row>
                                 <el-col :span="24">
-                                    <el-button type="primary" style="width:100%;" @click="btnCk($event)" v-if="this.formStyle=='display:none;'">创建新标签</el-button>
+                                    <el-button type="primary" style="width:100%;" @click="btnCk($event)" v-if="this.formStyle=='display:none;'">创建新类型</el-button>
                                 </el-col>
                             </el-row>
 
@@ -233,12 +233,15 @@
                                                 <el-tag type="success" v-if="scope.row.status=='unaudited'">待审核</el-tag>
                                             </template>
                                         </el-table-column>
-                                        <el-table-column fixed="right" label="操作" width="100">
+                                        <el-table-column fixed="right" label="操作" width="250">
                                             <template slot-scope="scope">
-                                                <el-button type="text" size="small" @click="openGoodsModify(scope.row)">修改</el-button>
-                                                <el-button type="text" size="small" v-if="scope.row.status=='unaudited'" @click="modifyGoodsStatus(scope.row.id,'enabled')">发布</el-button>
-                                                <el-button type="text" size="small" v-if="scope.row.status=='enabled'" @click="modifyGoodsStatus(scope.row.id,'disabled')">冻结</el-button>
-                                                <el-button type="text" size="small" v-if="scope.row.status=='disabled'" @click="modifyGoodsStatus(scope.row.id,'enabled')">解冻</el-button>
+                                                <el-button-group>
+                                                    <el-button size="mini" @click="openGoodsModify(scope.row)">修改</el-button>
+                                                    <el-button type="primary" size="mini" v-if="scope.row.status=='unaudited'" @click="modifyGoodsStatus(scope.row.id,'enabled')">发布</el-button>
+                                                    <el-button type="danger" size="mini" v-if="scope.row.status=='enabled'" @click="modifyGoodsStatus(scope.row.id,'disabled')">冻结</el-button>
+                                                    <el-button type="primary" size="mini" v-if="scope.row.status=='disabled'" @click="modifyGoodsStatus(scope.row.id,'enabled')">解冻原型</el-button>
+                                                    <el-button type="primary" size="mini" v-if="scope.row.status=='disabled'" @click="modifyGoodsStatus(scope.row.id,'enabledAll')">解冻全部</el-button>
+                                                </el-button-group>
                                             </template>
                                         </el-table-column>
                                     </el-table>
@@ -299,7 +302,7 @@
                                                 </el-table-column>
                                                 <el-table-column prop="number" label="数量" width="60">
                                                 </el-table-column>
-                                                <el-table-column label="操作" width="160">
+                                                <el-table-column label="操作" width="200">
                                                     <template slot-scope="scope">
                                                         <el-button-group>
                                                             <el-button  @click="openDisabled(scope.row.goodsId,'disabled')" v-if="scope.row.status == 'prepared' || scope.row.status == 'online'" size="mini" type="danger">冻结</el-button>
@@ -337,10 +340,13 @@
                                 </el-table-column>
                                 <el-table-column prop="dealNumber" label="交易量" >
                                 </el-table-column>
-                                <el-table-column fixed="right" label="操作" width="100">
+                                <el-table-column fixed="right" label="操作" width="200">
                                     <template slot-scope="scope">
-                                        <el-button type="text" size="small" v-if="scope.row.status=='enabled'" @click="modifyShopStatus(scope.row.id,'disabled')">冻结</el-button>
-                                        <el-button type="text" size="small" v-if="scope.row.status=='disabled'" @click="modifyShopStatus(scope.row.id,'enabled')">解冻</el-button>
+                                        <el-button-group>
+                                            <el-button type="danger" size="mini" v-if="scope.row.status=='enabled'" @click="modifyShopStatus(scope.row.id,'disabled')">冻结</el-button>
+                                            <el-button type="primary" size="mini" v-if="scope.row.status=='disabled'" @click="modifyShopStatus(scope.row.id,'enabled')">解冻超市</el-button>
+                                            <el-button type="primary" size="mini" v-if="scope.row.status=='disabled'" @click="modifyShopStatus(scope.row.id,'enabledAll')">解冻全部</el-button>
+                                        </el-button-group>
                                     </template>
                                 </el-table-column>
                             </el-table>
@@ -890,6 +896,7 @@
                     // always executed
                 });
             },
+
             openGoodsModify:function(goods){
                 const _this=this;
                 _this.goodsForm=JSON.parse(JSON.stringify(goods));
@@ -1049,6 +1056,7 @@
                     .then(function (response) {
                         if(response.data.rtnFlag=="9999"){//请求成功
                             _this.initShopTable();
+                            _this.initShopGoodsTable();
                             _this.$message('修改超市状态成功！');
                         }else if(response.data.rtnFlag=="1001"){//未登录
                             //_this.loginDgVisible=true;

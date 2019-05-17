@@ -21,7 +21,7 @@ public class MyMvcConfig  implements WebMvcConfigurer{
                 .addPathPatterns("/**")
                 .excludePathPatterns("/","/login", "/js/vue.js","/js/index.js","/js/axios.min.js","/js/msg.js",
                         "/js/vuescroll.js","/js/vuescroll-native.js","/js/vuescroll-slide.js","/js/jquery-3.2.1.min.js",
-                        "/styles/bootstrap.min.css","/styles/index.css","/styles/vuescroll.css");
+                        "/styles/bootstrap.min.css","/styles/index.css","/styles/vuescroll.css","/registerUser","/registerShop","/testUsername","/testShopName");
     }
 
     @Override

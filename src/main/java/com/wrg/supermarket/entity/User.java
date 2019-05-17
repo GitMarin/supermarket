@@ -22,13 +22,10 @@ public class User implements Serializable {
     private String gender;
     //默认地址
     private String defaultAddress;
-    private String remark;
     private LocalDateTime registerTime;
-    private LocalDateTime lastAccessTime;
     private Integer age;
     private Integer dealNumber;
     private Integer commentNumber;
-    private Integer favoritesNumber;
     private Integer shoppingCartNumber;
 
     public Integer getAge() {
@@ -88,28 +85,12 @@ public class User implements Serializable {
         this.defaultAddress = defaultAddress;
     }
 
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
     public LocalDateTime getRegisterTime() {
         return registerTime;
     }
 
     public void setRegisterTime(LocalDateTime registerTime) {
         this.registerTime = registerTime;
-    }
-
-    public LocalDateTime getLastAccessTime() {
-        return lastAccessTime;
-    }
-
-    public void setLastAccessTime(LocalDateTime lastAccessTime) {
-        this.lastAccessTime = lastAccessTime;
     }
 
     public Integer getDealNumber() {
@@ -126,14 +107,6 @@ public class User implements Serializable {
 
     public void setCommentNumber(Integer commentNumber) {
         this.commentNumber = commentNumber;
-    }
-
-    public Integer getFavoritesNumber() {
-        return favoritesNumber;
-    }
-
-    public void setFavoritesNumber(Integer favoritesNumber) {
-        this.favoritesNumber = favoritesNumber;
     }
 
     public Integer getShoppingCartNumber() {

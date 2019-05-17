@@ -24,11 +24,6 @@ public class Shop  implements Serializable {
     private String address;
 
     /**
-     * 商品数量
-     */
-    private Integer goodsNumber;
-
-    /**
      * 评论量
      */
     private Integer commentNumber;
@@ -49,7 +44,6 @@ public class Shop  implements Serializable {
 
     private String remark;
     private LocalDateTime registerTime;
-    private LocalDateTime lastAccessTime;
 
     public String getName() {
         return name;
@@ -75,14 +69,6 @@ public class Shop  implements Serializable {
 
     public void setAddress(String address) {
         this.address = address;
-    }
-
-    public Integer getGoodsNumber() {
-        return goodsNumber;
-    }
-
-    public void setGoodsNumber(Integer goodsNumber) {
-        this.goodsNumber = goodsNumber;
     }
 
     public Integer getCommentNumber() {
@@ -123,14 +109,6 @@ public class Shop  implements Serializable {
 
     public void setRegisterTime(LocalDateTime registerTime) {
         this.registerTime = registerTime;
-    }
-
-    public LocalDateTime getLastAccessTime() {
-        return lastAccessTime;
-    }
-
-    public void setLastAccessTime(LocalDateTime lastAccessTime) {
-        this.lastAccessTime = lastAccessTime;
     }
 
     public String getStatus() {

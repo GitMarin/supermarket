@@ -118,10 +118,8 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         shopGoods.setDepict(map.get("depict").toString());
         shopGoods.setDealNumber(0);
         shopGoods.setCommentNumber(0);
-        shopGoods.setFavoritesNumber(0);
         shopGoods.setLastCommentTime(null);
         shopGoods.setLastDealTime(null);
-        shopGoods.setLastFavoritesTime(null);
 
         shopGoods.setLastOnlineTime(currentDate);
         shopGoods.setCreateTime(currentDate);
@@ -228,9 +226,23 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
 
     @Override
     public MkplatWebModel modifyShopGoodsStatus(Map<String,Object> map){
+        String status = map.get("status").toString();
+        String shopId = map.get("shopId").toString();
+        String goodsId = map.get("goodsId").toString();
+        if(status.equals("disabled")){
+            QueryWrapper<ShopGoods> shopGoodsQueryWrapper = Wrappers.query();
+            shopGoodsQueryWrapper.eq("shop_id",shopId).eq("goods_id",goodsId);
+            ShopGoods shopGoods = getOne(shopGoodsQueryWrapper);
+            String  oldStatus = shopGoods.getStatus();
+            if(oldStatus.equals("online")){
+                Goods goods = goodsMapper.selectById(goodsId);
+                goods.setNumber(goods.getNumber()- shopGoods.getNumber());
+                goodsMapper.updateById(goods);
+            }
+        }
         UpdateWrapper<ShopGoods> updateWrapper = Wrappers.update();
-        updateWrapper.eq("shop_id",map.get("shopId").toString())
-                .eq("goods_id",map.get("goodsId").toString())
+        updateWrapper.eq("shop_id",shopId)
+                .eq("goods_id",goodsId)
                 .set("status",map.get("status").toString());
         update(updateWrapper);
         return MkplatWebModel.success();

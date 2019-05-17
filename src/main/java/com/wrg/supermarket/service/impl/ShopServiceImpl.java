@@ -1,12 +1,15 @@
 package com.wrg.supermarket.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.wrg.supermarket.component.JavaBeanUtil;
 import com.wrg.supermarket.component.MkplatWebModel;
+import com.wrg.supermarket.entity.Goods;
 import com.wrg.supermarket.entity.Shop;
 import com.wrg.supermarket.entity.ShopGoods;
+import com.wrg.supermarket.mapper.GoodsMapper;
 import com.wrg.supermarket.mapper.ShopGoodsMapper;
 import com.wrg.supermarket.mapper.ShopMapper;
 import com.wrg.supermarket.service.IShopService;
@@ -31,6 +34,8 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
     @Autowired
     private ShopGoodsMapper shopGoodsMapper;
+    @Autowired
+    private GoodsMapper goodsMapper;
     @Override
     public MkplatWebModel getOneShop(String id){
         return MkplatWebModel.convertMetroPayWebModel(getById(id));
@@ -74,8 +79,33 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     @Override
     public MkplatWebModel modifyShopStatus(Map<String, Object> map){
         Shop shop = new Shop();
-        shop.setId(map.get("id").toString());
-        shop.setStatus(map.get("status").toString());
+        String shopId = map.get("id").toString();
+        String status = map.get("status").toString();
+        shop.setId(shopId);
+        shop.setStatus(status);
+        if(status.equals("disabled")){
+            QueryWrapper<ShopGoods> shopGoodsQueryWrapper = Wrappers.query();
+            shopGoodsQueryWrapper.eq("shop_id",shopId).eq("status","online");
+            List<ShopGoods> shopGoodsList = shopGoodsMapper.selectList(shopGoodsQueryWrapper);
+
+            UpdateWrapper<ShopGoods> shopGoodsUpdateWrapper = Wrappers.update();
+            shopGoodsUpdateWrapper.eq("shop_id",shopId).set("status","disabled");
+            shopGoodsMapper.update(new ShopGoods(),shopGoodsUpdateWrapper);
+
+            for(int i = 0;i<shopGoodsList.size();i++){
+                ShopGoods shopGoods = shopGoodsList.get(i);
+                String goodsId = shopGoods.getGoodsId();
+                UpdateWrapper<Goods> goodsUpdateWrapper = Wrappers.update();
+                goodsUpdateWrapper.eq("id",goodsId).set("number",goodsMapper.selectById(goodsId).getNumber()-shopGoods.getNumber());
+                goodsMapper.update(new Goods(),goodsUpdateWrapper);
+            }
+        }else if(status.equals("enabledAll")){
+            UpdateWrapper<ShopGoods> shopGoodsUpdateWrapper = Wrappers.update();
+            shopGoodsUpdateWrapper.eq("shop_id",shopId).set("status","prepared");
+            shopGoodsMapper.update(new ShopGoods(),shopGoodsUpdateWrapper);
+
+            shop.setStatus("enabled");
+        }
         updateById(shop);
         return MkplatWebModel.success();
     }

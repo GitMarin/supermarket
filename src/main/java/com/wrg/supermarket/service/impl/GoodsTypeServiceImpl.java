@@ -34,7 +34,7 @@ public class GoodsTypeServiceImpl extends ServiceImpl<GoodsTypeMapper, GoodsType
         int size=Integer.parseInt(map.get("size").toString());
         //分页处理
         QueryWrapper<GoodsType> queryWrapper= Wrappers.query();
-        queryWrapper.orderByAsc("order_number");
+        queryWrapper.orderByDesc("order_number");
         IPage<GoodsType> pageData=page(new com.baomidou.mybatisplus.extension.plugins.pagination.Page<GoodsType>(current,size),queryWrapper);
         //处理分页后的数据
         List<GoodsType> pageList=pageData.getRecords();

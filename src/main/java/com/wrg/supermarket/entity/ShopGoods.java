@@ -24,10 +24,8 @@ public class ShopGoods implements Serializable {
     private Integer number;
     private Integer dealNumber;
     private Integer commentNumber;
-    private Integer favoritesNumber;
     private LocalDateTime lastOnlineTime;
     private LocalDateTime lastCommentTime;
-    private LocalDateTime lastFavoritesTime;
     private LocalDateTime lastDealTime;
     private LocalDateTime createTime;
 
@@ -71,14 +69,6 @@ public class ShopGoods implements Serializable {
         this.commentNumber = commentNumber;
     }
 
-    public Integer getFavoritesNumber() {
-        return favoritesNumber;
-    }
-
-    public void setFavoritesNumber(Integer favoritesNumber) {
-        this.favoritesNumber = favoritesNumber;
-    }
-
     public LocalDateTime getLastOnlineTime() {
         return lastOnlineTime;
     }
@@ -93,14 +83,6 @@ public class ShopGoods implements Serializable {
 
     public void setLastCommentTime(LocalDateTime lastCommentTime) {
         this.lastCommentTime = lastCommentTime;
-    }
-
-    public LocalDateTime getLastFavoritesTime() {
-        return lastFavoritesTime;
-    }
-
-    public void setLastFavoritesTime(LocalDateTime lastFavoritesTime) {
-        this.lastFavoritesTime = lastFavoritesTime;
     }
 
     public LocalDateTime getLastDealTime() {

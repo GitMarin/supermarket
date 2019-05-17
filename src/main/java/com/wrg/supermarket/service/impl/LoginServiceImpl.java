@@ -20,6 +20,7 @@ import com.wrg.supermarket.utils.exception.MkplatException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +72,6 @@ public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements I
         JavaBeanUtil.transMap2Bean(map,user);
         user.setDealNumber(0);
         user.setCommentNumber(0);
-        user.setFavoritesNumber(0);
         user.setShoppingCartNumber(0);
         user.setId(key);
         //user.setType("asf");
@@ -79,7 +79,6 @@ public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements I
         user.setAge(LocalDateTime.now().getYear()-Integer.parseInt(splitYear((String) map.get("year")))-1);
         //获取当前时间
         LocalDateTime currentDate=LocalDateTime.now();
-        user.setLastAccessTime(currentDate);
         user.setRegisterTime(currentDate);
         user.setAvatar("img/user01.jpg");
         save(user);
@@ -88,6 +87,7 @@ public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements I
         account.setId(key);
         account.setUsername(map.get("username").toString());
         account.setPassword(map.get("password").toString());
+        account.setWallet(new BigDecimal(10000));
         account.setType("user");
         accountMapper.insert(account);
 
@@ -105,11 +105,9 @@ public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements I
         JavaBeanUtil.transMap2Bean(map,shop);
         shop.setCommentNumber(0);
         shop.setDealNumber(0);
-        shop.setGoodsNumber(0);
         shop.setId(key);
         //获取当前时间
         LocalDateTime currentDate=LocalDateTime.now();
-        shop.setLastAccessTime(currentDate);
         shop.setRegisterTime(currentDate);
         shop.setPicLink("img/user01.jpg");
         shopMapper.insert(shop);
