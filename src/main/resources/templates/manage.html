@@ -281,9 +281,15 @@
                                                 </el-table-column>
                                                 <el-table-column prop="marque" label="型号" >
                                                 </el-table-column>
-                                                <el-table-column prop="depict" label="描述" >
+                                                <el-table-column label="描述" >
+                                                    <template slot-scope="scope" >
+                                                        <span style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="scope.row.depict">{{scope.row.depict}}</span>
+                                                    </template>
                                                 </el-table-column>
-                                                <el-table-column prop="createTime" label="创建时间">
+                                                <el-table-column label="创建时间">
+                                                    <template slot-scope="scope" >
+                                                        <span style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="scope.row.createTime">{{scope.row.createTime}}</span>
+                                                    </template>
                                                 </el-table-column>
                                                 <el-table-column label="状态">
                                                     <template slot-scope="scope" >
@@ -334,9 +340,10 @@
                                         <el-tag type="danger" v-if="scope.row.status == 'disabled'">冻结</el-tag>
                                     </template>
                                 </el-table-column>
-                                <el-table-column prop="address" label="地址" >
-                                </el-table-column>
-                                <el-table-column prop="goodsNumber" label="商品种类" >
+                                <el-table-column label="地址" >
+                                    <template slot-scope="scope" >
+                                        <span style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="scope.row.address">{{scope.row.address}}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column prop="dealNumber" label="交易量" >
                                 </el-table-column>
@@ -383,14 +390,22 @@
                                         <el-col :span="10"><label>宝贝</label></el-col>
                                         <el-col :span="3"><label>单价</label></el-col>
                                         <el-col :span="4"><label>数量</label></el-col>
-                                        <el-col :span="7"><label>操作</label></el-col>
+                                        <el-col :span="7"></el-col>
                                     </el-row>
                                 </el-card>
                                 <div v-for="t in dealTableData" style="width: 100%">
                                     <el-card>
                                         <el-row style="height: 25px">
-                                            <el-col :span="5"><span>创建时间:{{t.createTime}}</span></el-col>
-                                            <el-col :span="7"><span>交易单号:{{t.dealId}}</span></el-col>
+                                            <el-col :span="4">
+                                                <span style="width:100%;display:inline-block;overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="t.createTime">
+                                                    创建时间:{{t.createTime}}
+                                                </span>
+                                            </el-col>
+                                            <el-col :span="5">
+                                                <span style="width:100%;display:inline-block;overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="t.dealId">
+                                                    交易单号:{{t.dealId}}
+                                                </span>
+                                            </el-col>
                                             <el-col :span="4"><span>超市名:{{t.shopName}}</span></el-col>
                                             <el-col :span="3"><span>用户名:{{t.userName}}</span></el-col>
                                             <el-col :span="2">
@@ -403,6 +418,9 @@
                                                 <el-tag v-if="t.status == 'over'">完成</el-tag>
                                             </el-col>
                                             <el-col :span="3">
+                                                <span style="font-size: 20px;color: #f40;font-weight: 700">￥{{t.dealPrice}}元</span>
+                                            </el-col>
+                                            <el-col :span="3">
                                                 <el-button-group>
                                                     <el-button size="mini" v-if="t.status == 'waitRefund'" type="warning" @click="openRefund(t.dealId,t.userId,t.shopId)">强制退款</el-button>
                                                 </el-button-group>
@@ -412,7 +430,7 @@
                                     <el-card v-for="v in t.cardData" style="height: 55px">
                                         <el-row>
                                             <el-col :span="10"><span>{{v.goodsName}}</span></el-col>
-                                            <el-col :span="4"><span>￥{{v.goodsPrice}}元</span></el-col>
+                                            <el-col :span="4" style="color: #f40;font-weight: 700"><span>￥{{v.goodsPrice}}元</span></el-col>
                                             <el-col :span="3"><span>{{v.goodsNumber}}</span></el-col>
                                             <el-col :span="6"></el-col>
                                         </el-row>

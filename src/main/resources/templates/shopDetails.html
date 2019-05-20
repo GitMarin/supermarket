@@ -67,20 +67,22 @@
             </el-row>
         </el-header>
         <el-main>
-            <div style="width:500px;height: 250px;margin: 50px auto 0px;">
-                <el-card v-model="shopData">
-                    <div style="float:left">
-                        <img :src="shopData.picLink" :alt="shopData.name" width="250px" height="250px">
-                    </div>
-                    <div style="float:right">
-                        <span style="font-size: 24px">{{shopData.name}}</span><br>
-                        <p>{{shopData.address}}</p>
-                        <p>{{shopData.remark}} </p>
-                        <p>销量：{{shopData.dealNumber}}</p>
-                    </div>
-                </el-card>
+            <div style="background-image: url('img/backG.jpg');height: 273px;">
+                <div style="width:500px;height: 250px;margin: 0px auto 0px;">
+                    <el-card v-model="shopData">
+                        <div style="float:left">
+                            <img :src="shopData.picLink" :alt="shopData.name" width="250px" height="250px">
+                        </div>
+                        <div style="float:right;width: 180px">
+                            <span style="font-size: 24px">{{shopData.name}}</span><br>
+                            <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="shopData.address">{{shopData.address}}</p>
+                            <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="shopData.remark">{{shopData.remark}} </p>
+                            <p>销量：{{shopData.dealNumber}}</p>
+                        </div>
+                    </el-card>
+                </div>
             </div><br>
-            <div style="width: 90%;margin: 50px auto 0px;">
+            <div style="width: 90%;margin: 10px auto 0px;">
                 <el-card>
                     <el-form ref="searchForm" :inline="true" :model="searchForm" label-width="80px" size="mini">
                         <el-form-item label="商品名">
@@ -104,10 +106,13 @@
                                     <img :src="v.condensePicLink" :alt="v.name" style="width: 80%"><br>
                                     <el-button type="text" @click="goDetails(v.goodsId)">{{v.name}}</el-button>
                                     <p>{{v.typeName}}</p>
-                                    <p>{{v.brandName}}&nbsp;&nbsp;{{v.marque}}</p>
-                                    <p>{{v.depict}}</p>
-                                    <p>存货：{{v.number}}&nbsp;&nbsp;销量：{{v.dealNumber}}</p>
-                                    <p>原价￥<span style="font-size: 20px">{{v.price}}</span>元&nbsp;&nbsp;定价￥<span style="font-size: 20px">{{v.currentPrice}}</span>元</p>
+                                    <p style="color: #888;">{{v.brandName}}<span style="float: right">{{v.marque}}</span></p>
+                                    <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="v.depict">{{v.depict}}</p>
+                                    <p>存货：{{v.number}}<span style="float: right">销量：{{v.dealNumber}}</span></p>
+                                    <p>
+                                        定价<span style="font-size: 20px;color: #f40;font-weight: 700">￥{{v.currentPrice}}元</span>&nbsp;&nbsp;
+                                        <span style="text-decoration: line-through">￥{{v.price}}元</span>
+                                    </p>
                                     <el-button-group>
                                         <el-button type="primary" @click="buyGoods(v.goodsId)" size="mini">立即购买</el-button>
                                         <el-button size="mini" @click="addPurchase(v.goodsId)">加入购物车</el-button>

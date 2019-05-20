@@ -130,9 +130,14 @@
                             </el-table-column>
                             <el-table-column prop="brandName" label="品牌" >
                             </el-table-column>
-                            <el-table-column prop="marque" label="型号" >
+                            <el-table-column prop="marque" label="规格" >
                             </el-table-column>
                             <el-table-column prop="depict" label="描述" >
+                                <template slot-scope="scope">
+                                    <span style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="scope.row.depict">
+                                        {{scope.row.depict}}
+                                    </span>
+                                </template>
                             </el-table-column>
                             <el-table-column prop="createTime" label="创建时间" width="180">
                             </el-table-column>
@@ -211,7 +216,7 @@
                                     <el-tag type="info" v-if="t.status == 'refund'">已退款</el-tag>
                                     <el-tag type="info" v-if="t.status == 'over'">完成</el-tag>
                                 </el-col>
-                                <el-col :span="3">交易总额:￥<span style="font-size: 18px">{{t.dealPrice}}</span>元</el-col>
+                                <el-col :span="3">交易总额:￥<span style="font-size: 20px;color: #f40;font-weight: 700">{{t.dealPrice}}</span>元</el-col>
                                 <el-col :span="2">
                                     <el-button-group>
                                         <el-button size="small" v-if="t.status == 'waitSend'" type="primary" @click="openSend(t.dealId,t.userId)">发货</el-button>
@@ -223,7 +228,7 @@
                         <el-card v-for="v in t.cardData" style="height: 55px">
                             <el-row>
                                 <el-col :span="10"><span>{{v.goodsName}}</span></el-col>
-                                <el-col :span="4"><span>￥{{v.goodsPrice}}元</span></el-col>
+                                <el-col :span="4"><span style="color: #f40;font-weight: 700">￥{{v.goodsPrice}}元</span></el-col>
                                 <el-col :span="3"><span>{{v.goodsNumber}}</span></el-col>
                                 <el-col :span="6">
 

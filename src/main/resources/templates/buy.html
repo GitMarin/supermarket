@@ -80,16 +80,17 @@
                 <el-card>
                     <h4>{{shopGoodsData.goodsName}}</h4>
                     <p>类型：{{shopGoodsData.typeName}}</p>
-                    <p>品牌：{{shopGoodsData.brandName}}</p>
-                    <p>描述：{{shopGoodsData.depict}}</p>
-                    <p>规格：{{shopGoodsData.marque}}</p>
-
+                    <p style="color: #888">{{shopGoodsData.brandName}} <span style="float: right;">{{shopGoodsData.marque}}</span></p>
+                    <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="shopGoodsData.depict">描述：{{shopGoodsData.depict}}</p>
                     <p>存货：{{shopGoodsData.number}}&nbsp;&nbsp;&nbsp;&nbsp;销量：{{shopGoodsData.dealNumber}}</p>
                     <label>购买数量：</label>
                     <template>
                         <el-input-number v-model="shopGoodsData.num" :min="1" :max="shopGoodsData.number" size="mini"></el-input-number>
                     </template>
-                    <p>定价￥<span style="font-size: 20px">{{shopGoodsData.price}}</span>元&nbsp;&nbsp;&nbsp;&nbsp;参考价￥{{shopGoodsData.originalPrice}}元</p>
+                    <p>
+                        定价<span style="font-size: 20px;color: #f40;font-weight: 700">￥{{shopGoodsData.price}}元</span>
+                        <span style="text-decoration: line-through">￥{{shopGoodsData.originalPrice}}元</span>
+                    </p>
                     <el-button type="text" @click="goShopDetails">{{shopGoodsData.shopName}}</el-button>
                     <el-button-group style="float: right">
                         <el-button type="primary" @click="makeDeal" size="mini">付款</el-button>

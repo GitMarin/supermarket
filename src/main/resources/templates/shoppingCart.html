@@ -52,10 +52,12 @@
         <el-main>
             <el-card style="width: 80%;margin: auto;min-width: 885px">
                 <el-table border empty-text=" " height="50px" style="width: 100%">
-                    <el-table-column label="宝贝" min-width="40%"></el-table-column>
+                    <el-table-column label="宝贝" min-width="30%"></el-table-column>
+                    <el-table-column label="规格" min-width="10%"></el-table-column>
                     <el-table-column label="单价" min-width="15%"></el-table-column>
+                    <el-table-column label="存货" min-width="15%"></el-table-column>
                     <el-table-column label="数量" min-width="15%"></el-table-column>
-                    <el-table-column label="操作" min-width="30%"></el-table-column>
+                    <el-table-column label="操作" min-width="15%"></el-table-column>
                 </el-table>
 
                 <div v-for="(t,index) in tableData"  style="width: 100%">
@@ -67,22 +69,24 @@
                         <el-table :data="t.cardData" style="width: 100%" :show-header="false" @select="handleSelectionChange($event,index)">
 
                             <el-table-column type="selection" min-width="3%"></el-table-column>
-                            <el-table-column prop="goodsName" label="宝贝" min-width="37%">
+                            <el-table-column prop="goodsName" label="宝贝" min-width="27%">
                                 <template slot-scope="scope">
                                     <el-button type="text" style="width: 30%" @click="goGoods(scope.row.goodsId)">{{scope.row.goodsName}}</el-button>
                                 </template>
                             </el-table-column>
+                            <el-table-column label="规格" min-width="10%" prop="marque"></el-table-column>
                             <el-table-column label="价格" min-width="15%">
                                 <template slot-scope="scope">
-                                    ￥<span style="font-size: 20px">{{scope.row.price}}</span>元&nbsp;
+                                    <span style="font-size: 20px;color: #f40;font-weight: 700">￥{{scope.row.price}}元</span>&nbsp;
                                 </template>
                             </el-table-column>
+                            <el-table-column label="存货" min-width="15%" prop="number"></el-table-column>
                             <el-table-column label="数量" min-width="15%">
                                 <template slot-scope="scope">
                                     <el-input-number v-model="scope.row.num"  :min="1" :max="scope.row.number" size="mini" @change="handleNumberChange"></el-input-number>
                                 </template>
                             </el-table-column>
-                            <el-table-column label="操作" min-width="30%">
+                            <el-table-column label="操作" min-width="15%">
                                 <template slot-scope="scope">
                                     <el-button-group>
                                         <el-button  size="small" @click="confirmDelete(scope.row.shopId,scope.row.goodsId)">删除</el-button>

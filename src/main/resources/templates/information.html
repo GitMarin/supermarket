@@ -70,16 +70,18 @@
         </el-header>
         <el-main>
             <!--个人信息模块-->
-            <div style="margin:50px auto 0px; width: 500px;" >
-                <div style="height:250px">
-                    <img :src="avatar" style="float: left;width: 250px;height: 250px">
-                    <div style="float:right">
-                        <p>昵称：{{nickname}}</p>
-                        <p>年龄：{{age}} 性别：{{gender}}</p>
-                        <p>签名：{{sign}}</p>
-                        <p>地址：{{address}}</p>
-                        <el-button @click="openDg_modifyUser">修改信息</el-button>
-                    </div>
+            <div style="background-image: url('img/backG.jpg');height: 250px;">
+                <div style="margin:0px auto 0px; width: 500px;" >
+                    <el-card style="height:250px">
+                        <img :src="avatar" style="float: left;width: 250px;height: 250px">
+                        <div style="float:right">
+                            <p>昵称:{{nickname}}</p>
+                            <p>年龄:{{age}} 性别:{{gender}}</p>
+                            <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="sign">签名:{{sign}}</p>
+                            <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="address">地址:{{address}}</p>
+                            <el-button @click="openDg_modifyUser">修改信息</el-button>
+                        </div>
+                    </el-card>
                 </div>
             </div><br>
             <!--交易列表-->
@@ -103,8 +105,8 @@
                 <div v-for="t in tableData" style="width: 100%">
                     <el-card style="font-weight: bold">
                         <el-row>
-                            <el-col :span="5"><span>创建时间:{{t.createTime}}</span></el-col>
-                            <el-col :span="7"><span>交易单号:{{t.dealId}}</span></el-col>
+                            <el-col :span="5"><span style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="t.createTime">创建时间:{{t.createTime}}</span></el-col>
+                            <el-col :span="7"><span style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="t.dealId">交易单号:{{t.dealId}}</span></el-col>
                             <el-col :span="4"><span>超市名:{{t.shopName}}</span></el-col>
                             <el-col :span="2">状态:
                                 <el-tag type="success" v-if="t.status == 'waitPay'">待付款</el-tag>
@@ -115,7 +117,7 @@
                                 <el-tag type="info" v-if="t.status == 'refund'">已退款</el-tag>
                                 <el-tag type="info" v-if="t.status == 'over'">完成</el-tag>
                             </el-col>
-                            <el-col :span="3">交易总额:￥<span style="font-size: 18px">{{t.dealPrice}}</span>元</el-col>
+                            <el-col :span="3">交易总额:<span style="font-size: 20px;color: #f40;font-weight: 700">￥{{t.dealPrice}}元</span></el-col>
                             <el-col :span="3">
                                 <el-button-group>
                                     <el-button size="small" v-if="t.status == 'waitPay'" type="primary" @click="openPay(t.dealId,t.shopId)">付款</el-button>
@@ -132,7 +134,7 @@
                     <el-card v-for="v in t.cardData" style="height: 55px">
                         <el-row>
                             <el-col :span="10"><span>{{v.goodsName}}</span></el-col>
-                            <el-col :span="4"><span>￥{{v.goodsPrice}}元</span></el-col>
+                            <el-col :span="4"><span style="font-size: 20px;color: #f40;font-weight: 700">￥{{v.goodsPrice}}元</span></el-col>
                             <el-col :span="3"><span>{{v.goodsNumber}}</span></el-col>
                             <el-col :span="6">
 

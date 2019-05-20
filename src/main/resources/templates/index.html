@@ -72,9 +72,15 @@
                     <ul>
                         <li v-for="v in cardData">
                             <img v-bind:src="v.condensePicLink" alt="v.name" @click="goodsClick(v.id)">
-                            <p>{{v.name}}</p>
-                            <p>{{v.brandName}} &nbsp;&nbsp;{{v.marque}}</p>
-                            <p>存货:{{v.number}}&nbsp;&nbsp;￥{{v.price}}元</p>
+                            <p style="font-weight: 600">{{v.name}}</p>
+                            <p style="color: #888">
+                                <span>品牌:{{v.brandName}}</span>
+                                <span style="float: right">{{v.marque}}</span>
+                            </p>
+                            <p>
+                                <span style="color: #f40;font-weight: 700;">￥{{v.price}}元</span>
+                                <span style="float: right">存货:{{v.number}}</span>
+                            </p>
                         </li>
                     </ul>
                 </div>

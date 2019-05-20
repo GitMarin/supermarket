@@ -59,22 +59,31 @@
             </el-row>
         </el-header>
         <el-main>
-            <div style="width:500px;height: 250px;margin: 50px auto 0px;">
-                <el-card v-model="goodsData">
-                    <div style="float:left">
-                        <img :src="goodsData.condensePicLink" :alt="goodsData.name" width="250px" height="250px">
-                    </div>
-                    <div style="float:right">
-                        <span style="font-size: 24px">{{goodsData.name}}</span><br>
-                        <p>{{goodsData.typeName}}</p>
-                        <p>{{goodsData.brandName}} </p>
-                        <p>{{goodsData.marque}}</p>
-                        <p>参考价￥<span style="font-size: 20px">{{goodsData.price}}</span>元</p>
-
-                    </div>
-                </el-card>
+            <div style="background-image: url('img/backG.jpg');height: 273px;">
+                <div style="width:500px;height: 250px;margin: 0px auto 0px;">
+                    <el-card v-model="goodsData">
+                        <div style="float:left">
+                            <img :src="goodsData.condensePicLink" :alt="goodsData.name" width="250px" height="250px">
+                        </div>
+                        <div style="float:right;width: 180px">
+                            <span style="font-size: 24px">{{goodsData.name}}</span><br>
+                            <p>{{goodsData.typeName}}</p>
+                            <p style="color: #888">品牌:{{goodsData.brandName}}<span style="float: right">{{goodsData.marque}}</span></p>
+                            <p>
+                                <el-button type="text">评论:{{goodsData.commentNumber}}</el-button>
+                            </p>
+                            <p style="width: 100%">
+                                存货:{{goodsData.number}}
+                                <span style="float: right">交易量:{{goodsData.dealNumber}}</span>
+                            </p>
+                            <p>
+                                参考价:<span style="font-size: 20px;color: #f40;font-weight: 700;float: right">￥{{goodsData.price}}元</span>
+                            </p>
+                        </div>
+                    </el-card>
+                </div>
             </div><br>
-            <div style="width: 90%;margin: 50px auto 0px;">
+            <div style="width: 90%;margin: 10px auto 0px;">
                 <el-card>
                     <div id="box">
                         <ul>
@@ -82,17 +91,24 @@
                                 <el-card>
                                     <img :src="v.picLink" :alt="v.name" :style="imgStyle">
                                     <el-button type="text" @click="goShopDetails(v.id)">{{v.name}} </el-button>
-                                    <p>{{v.remark}}</p>
-                                    <p>{{v.address}}</p>
+                                    <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="v.remark">{{v.remark}}</p>
+                                    <p style="color: #888;overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="v.address">地址:{{v.address}}</p>
                                 </el-card>
                                 <el-card style="width: 100%">
-                                    <p>{{v.depict}}</p>
-                                    <p>存货：{{v.number}}&nbsp;&nbsp;&nbsp;定价￥<span style="font-size: 20px">{{v.price}}</span>元</p>
+                                    <div>
+
+                                        <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="v.depict">描述:{{v.depict}}</p>
+
+                                        <p>存货：{{v.number}}
+                                            <span style="float: right">
+                                                定价<span style="font-size: 20px;color: #f40;font-weight: 700;">￥{{v.price}}元</span>
+                                            </span>
+                                        </p>
+                                    </div>
                                         <el-button-group>
                                             <el-button type="primary" @click="buyGoods(v.id)" size="mini">立即购买</el-button>
                                             <el-button size="mini" @click="addPurchase(v.id)" >加入购物车</el-button>
                                         </el-button-group>
-
                                 </el-card>
                             </li>
                         </ul>
