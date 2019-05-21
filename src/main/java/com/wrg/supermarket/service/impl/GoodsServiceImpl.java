@@ -43,7 +43,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         int size=Integer.parseInt(map.get("size").toString());
         int number=Integer.parseInt(map.get("number").toString());
         QueryWrapper<Goods> queryWrapper=Wrappers.query();
-        queryWrapper.ge("number",number);
+        queryWrapper.ge("number",number).orderByDesc("create_time");
         if(map.get("name")!=null)   queryWrapper.like("name",map.get("name").toString());
         //搜寻typeId的类型以及包含的商品类型，使用递归调用方法实现
         if(!map.get("status").toString().equals("all")) queryWrapper.eq("status",map.get("status").toString());

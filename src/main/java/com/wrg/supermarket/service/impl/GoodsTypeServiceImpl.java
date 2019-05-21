@@ -67,7 +67,8 @@ public class GoodsTypeServiceImpl extends ServiceImpl<GoodsTypeMapper, GoodsType
         //将map转换为实体
         GoodsType goodsType=new GoodsType();
 
-        JavaBeanUtil.transMap2Bean(map,goodsType);
+        goodsType.setName(map.get("name").toString());
+        if(map.get("pId")!=null) goodsType.setpId(map.get("pId").toString());
         //放入排列序号
         goodsType.setOrderNumber(orderNumber);
         //获取当前时间

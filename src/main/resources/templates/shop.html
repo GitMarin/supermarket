@@ -45,6 +45,9 @@
             display: block;
             border-radius: 5px;
         }
+        .el-upload-list--picture .el-upload-list__item.is-success .el-upload-list__item-name{
+            width: 125px;
+        }
     </style>
 
 </head>
@@ -951,6 +954,7 @@
             //图片展示 修改弹窗
 
             openPic:function(goodsId){
+                this.picData=[];
                 this.picDgVisible=true;
                 this.picGoodsId=goodsId;
                 this.getShopGoodsPic(this.picGoodsId);
