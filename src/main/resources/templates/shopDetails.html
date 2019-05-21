@@ -75,9 +75,9 @@
                         </div>
                         <div style="float:right;width: 180px">
                             <span style="font-size: 24px">{{shopData.name}}</span><br>
-                            <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="shopData.address">{{shopData.address}}</p>
                             <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="shopData.remark">{{shopData.remark}} </p>
                             <p>销量：{{shopData.dealNumber}}</p>
+                            <p style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;margin-top: 110px" :title="shopData.address">{{shopData.address}}</p>
                         </div>
                     </el-card>
                 </div>
@@ -101,9 +101,9 @@
                 <el-card>
                     <div id="box">
                         <ul>
-                            <li v-for="v in shopGoodsData" style="width: 20%">
+                            <li v-for="v in shopGoodsData" style="width: 18.5%">
                                 <el-card>
-                                    <img :src="v.condensePicLink" :alt="v.name" style="width: 80%"><br>
+                                    <img :src="v.condensePicLink" :alt="v.name" :style="imgStyle"><br>
                                     <el-button type="text" @click="goDetails(v.goodsId)">{{v.name}}</el-button>
                                     <p>{{v.typeName}}</p>
                                     <p style="color: #888;">{{v.brandName}}<span style="float: right">{{v.marque}}</span></p>
@@ -162,7 +162,10 @@
                     messageDgVisible:false,
                     messageData:[],
 
-
+                    imgStyle: {
+                        width: '100%',
+                        height: 0,
+                    },
                     shopId:null,
                     shopData:{},
                     shopGoodsData:{},
@@ -471,6 +474,7 @@
                 _this.getParentGoodsType();
                 _this.getShoppingCartCount();
                 _this.getNewMessageNumber();
+                _this.imgStyle.height = document.getElementById('box').clientWidth*0.137+"px";
             },
         });
     </script>

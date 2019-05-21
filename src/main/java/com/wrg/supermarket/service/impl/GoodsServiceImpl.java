@@ -49,8 +49,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         if(!map.get("status").toString().equals("all")) queryWrapper.eq("status",map.get("status").toString());
 
         //根据不同用户，选择提供不同状态的商品信息
-        if(map.get("typeId")!=null) queryTypeId(map.get("typeId").toString(),queryWrapper);
-
+        if(map.get("typeId")!=null) queryWrapper.and(i -> getQuery(map.get("typeId").toString(),i));
 
         //分页处理
         IPage<Goods> pageData=page(new com.baomidou.mybatisplus.extension.plugins.pagination.Page<Goods>(current,size),queryWrapper);
@@ -152,7 +151,10 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         return MkplatWebModel.success();
     }
 
-
+    private QueryWrapper<Goods> getQuery(String typeId,QueryWrapper<Goods> queryWrapper){
+        queryTypeId(typeId,queryWrapper);
+        return queryWrapper;
+    }
     private void queryTypeId(String typeId,QueryWrapper<Goods> queryWrapper){
         queryWrapper.eq("type_id",typeId).or();
         QueryWrapper<GoodsType> goodsTypeQueryWrapper=Wrappers.query();

@@ -115,7 +115,7 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         shopGoods.setStatus("prepared");
         shopGoods.setPrice(new BigDecimal(map.get("currentPrice").toString()));
         shopGoods.setNumber((Integer) map.get("num"));
-        shopGoods.setDepict(map.get("depict").toString());
+        if(map.get("depict")!=null) shopGoods.setDepict(map.get("depict").toString());
         shopGoods.setDealNumber(0);
         shopGoods.setCommentNumber(0);
         shopGoods.setLastCommentTime(null);
