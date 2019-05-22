@@ -60,7 +60,8 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         if(map.get("name")!=null || map.get("typeId")!=null) {
             List<Goods> goodsList = goodsMapper.selectList(goodsQueryWrapper);
             if(goodsList.size()==0) return MkplatWebModel.convertMetroPayWebModel((long) 0,resultList);
-            for (int i = 0; i < goodsList.size(); i++) queryWrapper.eq("goods_id", goodsList.get(i).getId()).or();
+            //for (int i = 0; i < goodsList.size(); i++) queryWrapper.eq("goods_id", goodsList.get(i).getId()).or();
+            queryWrapper.and(i ->getFunction(goodsList, i));
         }
 
         //分页处理
@@ -326,6 +327,10 @@ public class ShopGoodsServiceImpl extends ServiceImpl<ShopGoodsMapper, ShopGoods
         return dataStatisticsMap;
     }
 
+    private QueryWrapper<ShopGoods> getFunction(List<Goods> goodsList, QueryWrapper<ShopGoods> queryWrapper){
+        for (int i = 0; i < goodsList.size(); i++) queryWrapper.eq("goods_id", goodsList.get(i).getId()).or();
+        return queryWrapper;
+    }
 
     private QueryWrapper<Goods> getQuery(String typeId,QueryWrapper<Goods> queryWrapper){
         queryTypeId(typeId,queryWrapper);
